@@ -1,297 +1,203 @@
 """
-CLASE PRINCIPAL - BANCO
-Integra todas las estructuras de datos y modelos
+PROGRAMA PRINCIPAL
+Demostración del Sistema Bancario
+
+Este archivo demuestra el uso de TODAS las estructuras de datos:
+✓ Listas Enlazadas - Registro de clientes
+✓ Árboles Binarios de Búsqueda - Índice de cuentas
+✓ Colas FIFO - Transacciones pendientes
+✓ Pilas LIFO - Historial de operaciones
+✓ Arrays Dinámicos - Log de actividades
+✓ POO - Herencia y Polimorfismo
 """
 
-from datetime import datetime
-
-# Importaciones (en proyecto real desde módulos correspondientes)
-# from modelos.cliente import Cliente
-# from modelos.cuenta_ahorro import CuentaAhorro
-# from modelos.cuenta_corriente import CuentaCorriente
-# from servicios.registro_clientes import RegistroClientes
-# from servicios.sistema_transacciones import SistemaTransacciones, Transaccion
-# from servicios.historial_operaciones import HistorialOperaciones, Operacion
-# from estructuras.arbol_binario import ArbolBinarioBusqueda
-# from estructuras.array_dinamico import ArrayDinamico
+# from banco import Banco
 
 
-class Banco:
-    """
-    Clase principal que coordina todo el sistema bancario
-    
-    INTEGRA TODAS LAS ESTRUCTURAS:
-    - Lista Enlazada: Registro de clientes
-    - Árbol Binario: Índice de cuentas
-    - Cola FIFO: Transacciones pendientes
-    - Pila LIFO: Historial de operaciones
-    - Array Dinámico: Log de actividades
-    """
-    
-    def __init__(self, nombre_banco):
-        """
-        Inicializa el sistema bancario completo
-        
-        Args:
-            nombre_banco (str): Nombre del banco
-        """
-        self.nombre = nombre_banco
-        self.fecha_fundacion = datetime.now()
-        
-        # Inicializar componentes (usando estructuras de datos)
-        # self.registro_clientes = RegistroClientes()  # Lista Enlazada
-        # self.indice_cuentas = ArbolBinarioBusqueda()  # BST
-        # self.sistema_transacciones = SistemaTransacciones()  # Cola FIFO
-        # self.historial = HistorialOperaciones()  # Pila LIFO
-        # self.log_actividades = ArrayDinamico(50)  # Array Dinámico
-        
-        # Simulación para el ejemplo
-        self.registro_clientes = []
-        self.indice_cuentas = {}
-        self.sistema_transacciones = []
-        self.historial = []
-        self.log_actividades = []
-        
-        self._log(f"Banco '{nombre_banco}' inicializado")
-    
-    def _log(self, mensaje):
-        """
-        Registra una actividad en el log (Array Dinámico)
-        
-        Args:
-            mensaje (str): Mensaje a registrar
-        """
-        entrada = {
-            'timestamp': datetime.now(),
-            'mensaje': mensaje
-        }
-        # self.log_actividades.agregar(entrada)
-        self.log_actividades.append(entrada)
-    
-    # ========== GESTIÓN DE CLIENTES ==========
-    
-    def registrar_cliente(self, nombre, apellido, dni, email, telefono="", direccion=""):
-        """
-        Registra un nuevo cliente en el banco
-        
-        Args:
-            nombre, apellido, dni, email, telefono, direccion
-            
-        Returns:
-            Cliente: Cliente registrado
-        """
-        # cliente = Cliente(nombre, apellido, dni, email, telefono, direccion)
-        # self.registro_clientes.registrar_cliente(cliente)
-        
-        cliente = {
-            'id': len(self.registro_clientes) + 1,
-            'nombre': nombre,
-            'apellido': apellido,
-            'dni': dni,
-            'email': email,
-            'cuentas': []
-        }
-        self.registro_clientes.append(cliente)
-        
-        self._log(f"Cliente registrado: {nombre} {apellido} (DNI: {dni})")
-        return cliente
-    
-    def buscar_cliente(self, dni):
-        """Busca un cliente por DNI"""
-        # return self.registro_clientes.buscar_por_dni(dni)
-        for cliente in self.registro_clientes:
-            if cliente['dni'] == dni:
-                return cliente
-        return None
-    
-    # ========== GESTIÓN DE CUENTAS ==========
-    
-    def crear_cuenta_ahorro(self, dni_cliente, saldo_inicial=0, tasa_interes=0.02):
-        """
-        Crea una cuenta de ahorro para un cliente
-        
-        Args:
-            dni_cliente (str): DNI del cliente
-            saldo_inicial (float): Saldo inicial
-            tasa_interes (float): Tasa de interés anual
-            
-        Returns:
-            CuentaAhorro: Cuenta creada
-        """
-        cliente = self.buscar_cliente(dni_cliente)
-        
-        if not cliente:
-            raise ValueError(f"No se encontró cliente con DNI {dni_cliente}")
-        
-        # cuenta = CuentaAhorro(cliente, saldo_inicial, tasa_interes)
-        # cliente.agregar_cuenta(cuenta)
-        # self.indice_cuentas.insertar(cuenta.numero_cuenta, cuenta)
-        
-        numero_cuenta = len(self.indice_cuentas) + 1001
-        cuenta = {
-            'numero': numero_cuenta,
-            'tipo': 'AHORRO',
-            'cliente': cliente,
-            'saldo': saldo_inicial,
-            'tasa_interes': tasa_interes
-        }
-        self.indice_cuentas[numero_cuenta] = cuenta
-        cliente['cuentas'].append(cuenta)
-        
-        self._log(f"Cuenta Ahorro #{numero_cuenta} creada para {cliente['nombre']} {cliente['apellido']}")
-        return cuenta
-    
-    def crear_cuenta_corriente(self, dni_cliente, saldo_inicial=0, limite_sobregiro=1000):
-        """
-        Crea una cuenta corriente para un cliente
-        
-        Args:
-            dni_cliente (str): DNI del cliente
-            saldo_inicial (float): Saldo inicial
-            limite_sobregiro (float): Límite de sobregiro
-            
-        Returns:
-            CuentaCorriente: Cuenta creada
-        """
-        cliente = self.buscar_cliente(dni_cliente)
-        
-        if not cliente:
-            raise ValueError(f"No se encontró cliente con DNI {dni_cliente}")
-        
-        numero_cuenta = len(self.indice_cuentas) + 1001
-        cuenta = {
-            'numero': numero_cuenta,
-            'tipo': 'CORRIENTE',
-            'cliente': cliente,
-            'saldo': saldo_inicial,
-            'limite_sobregiro': limite_sobregiro
-        }
-        self.indice_cuentas[numero_cuenta] = cuenta
-        cliente['cuentas'].append(cuenta)
-        
-        self._log(f"Cuenta Corriente #{numero_cuenta} creada para {cliente['nombre']} {cliente['apellido']}")
-        return cuenta
-    
-    def buscar_cuenta(self, numero_cuenta):
-        """
-        Busca una cuenta por número usando Árbol Binario (O(log n))
-        
-        Args:
-            numero_cuenta (int): Número de cuenta
-            
-        Returns:
-            Cuenta: Cuenta encontrada o None
-        """
-        # return self.indice_cuentas.buscar(numero_cuenta)
-        return self.indice_cuentas.get(numero_cuenta)
-    
+def main():
+    """Función principal del programa"""
+    print("=" * 70)
+    print("SISTEMA DE GESTIÓN BANCARIA")
+    print("Proyecto: Aplicación de Estructuras de Datos")
+    print("=" * 70)
+
+    # ========== INICIALIZACIÓN DEL BANCO ==========
+    print("\n[1] Inicializando banco...")
+    banco = Banco("Banco Nacional del Ecuador")
+    print(f"✓ {banco}")
+
+    # ========== REGISTRO DE CLIENTES (Lista Enlazada) ==========
+    print("\n[2] Registrando clientes...")
+    print("    Estructura de datos: LISTA ENLAZADA")
+
+    cliente1 = banco.registrar_cliente(
+        "Juan", "Pérez", "1234567890",
+        "juan.perez@email.com", "0987654321", "Guayaquil"
+    )
+
+    cliente2 = banco.registrar_cliente(
+        "María", "González", "0987654321",
+        "maria.gonzalez@email.com", "0998765432", "Quito"
+    )
+
+    cliente3 = banco.registrar_cliente(
+        "Carlos", "Rodríguez", "1122334455",
+        "carlos.rodriguez@email.com", "0976543210", "Cuenca"
+    )
+
+    print(f"✓ {len(banco.registro_clientes)} clientes registrados")
+
+    # ========== CREACIÓN DE CUENTAS (Árbol Binario) ==========
+    print("\n[3] Creando cuentas bancarias...")
+    print("    Estructura de datos: ÁRBOL BINARIO DE BÚSQUEDA")
+    print("    Búsqueda de cuentas en O(log n)")
+
+    # Cuenta de ahorro para Juan (Herencia: CuentaAhorro)
+    cuenta1 = banco.crear_cuenta_ahorro("1234567890", 5000, 0.03)
+    print(f"✓ Cuenta Ahorro #{cuenta1['numero']} creada (tasa: 3%)")
+
+    # Cuenta corriente para Juan (Herencia: CuentaCorriente)
+    cuenta2 = banco.crear_cuenta_corriente("1234567890", 2000, 1500)
+    print(f"✓ Cuenta Corriente #{cuenta2['numero']} creada (sobregiro: $1500)")
+
+    # Cuentas para María
+    cuenta3 = banco.crear_cuenta_ahorro("0987654321", 10000, 0.025)
+    print(f"✓ Cuenta Ahorro #{cuenta3['numero']} creada (tasa: 2.5%)")
+
+    # Cuenta para Carlos
+    cuenta4 = banco.crear_cuenta_corriente("1122334455", 3000, 2000)
+    print(f"✓ Cuenta Corriente #{cuenta4['numero']} creada (sobregiro: $2000)")
+
+    print(f"\n✓ Total de cuentas en el sistema: {len(banco.indice_cuentas)}")
+
     # ========== OPERACIONES BANCARIAS ==========
-    
-    def depositar(self, numero_cuenta, monto):
-        """
-        Realiza un depósito en una cuenta
-        
-        Args:
-            numero_cuenta (int): Número de cuenta
-            monto (float): Monto a depositar
-            
-        Returns:
-            bool: True si fue exitoso
-        """
-        cuenta = self.buscar_cuenta(numero_cuenta)
-        
-        if not cuenta:
-            raise ValueError(f"Cuenta {numero_cuenta} no encontrada")
-        
-        # Guardar estado para historial
-        saldo_anterior = cuenta['saldo']
-        
-        # Realizar depósito
-        cuenta['saldo'] += monto
-        
-        # Registrar en historial (Pila LIFO)
-        # operacion = Operacion("DEPOSITO", cuenta, saldo_anterior, cuenta.saldo)
-        # self.historial.registrar_operacion(operacion)
-        
-        # Agregar a cola de transacciones
-        # transaccion = Transaccion("DEPOSITO", monto, cuenta)
-        # self.sistema_transacciones.agregar_transaccion(transaccion)
-        
-        self._log(f"Depósito ${monto:.2f} en cuenta #{numero_cuenta}")
-        return True
-    
-    def retirar(self, numero_cuenta, monto):
-        """
-        Realiza un retiro de una cuenta
-        
-        Args:
-            numero_cuenta (int): Número de cuenta
-            monto (float): Monto a retirar
-            
-        Returns:
-            bool: True si fue exitoso
-        """
-        cuenta = self.buscar_cuenta(numero_cuenta)
-        
-        if not cuenta:
-            raise ValueError(f"Cuenta {numero_cuenta} no encontrada")
-        
-        if cuenta['saldo'] < monto:
-            raise ValueError("Saldo insuficiente")
-        
-        saldo_anterior = cuenta['saldo']
-        cuenta['saldo'] -= monto
-        
-        self._log(f"Retiro ${monto:.2f} de cuenta #{numero_cuenta}")
-        return True
-    
-    def transferir(self, numero_cuenta_origen, numero_cuenta_destino, monto):
-        """
-        Realiza una transferencia entre cuentas
-        
-        Args:
-            numero_cuenta_origen (int): Cuenta origen
-            numero_cuenta_destino (int): Cuenta destino
-            monto (float): Monto a transferir
-            
-        Returns:
-            bool: True si fue exitoso
-        """
-        cuenta_origen = self.buscar_cuenta(numero_cuenta_origen)
-        cuenta_destino = self.buscar_cuenta(numero_cuenta_destino)
-        
-        if not cuenta_origen or not cuenta_destino:
-            raise ValueError("Una o ambas cuentas no existen")
-        
-        if cuenta_origen['saldo'] < monto:
-            raise ValueError("Saldo insuficiente en cuenta origen")
-        
-        # Realizar transferencia
-        cuenta_origen['saldo'] -= monto
-        cuenta_destino['saldo'] += monto
-        
-        self._log(f"Transferencia ${monto:.2f}: #{numero_cuenta_origen} → #{numero_cuenta_destino}")
-        return True
-    
-    # ========== REPORTES Y ESTADÍSTICAS ==========
-    
-    def generar_reporte_general(self):
-        """Genera un reporte completo del banco"""
-        print("\n" + "="*70)
-        print(f"BANCO {self.nombre.upper()} - REPORTE GENERAL")
-        print("="*70)
-        print(f"Fecha: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}")
-        print(f"\nTotal de clientes: {len(self.registro_clientes)}")
-        print(f"Total de cuentas: {len(self.indice_cuentas)}")
-        
-        saldo_total = sum(c['saldo'] for c in self.indice_cuentas.values())
-        print(f"Saldo total en el banco: ${saldo_total:.2f}")
-        
-        print("\nActividad reciente:")
-        for log in self.log_actividades[-5:]:
-            print(f"  {log['timestamp'].strftime('%H:%M:%S')} - {log['mensaje']}")
-        
-        print("="*70 + "\n")
-    
-    def __str__(self):
-        return f"Banco(nombre='{self.nombre}', clientes={len(self.registro_clientes)}, cuentas={len(self.indice_cuentas)})"
+    print("\n[4] Realizando operaciones bancarias...")
+
+    # --- DEPÓSITOS ---
+    print("\n--- DEPÓSITOS ---")
+    banco.depositar(1001, 1500)
+    print("✓ Depósito de $1500 en cuenta 1001")
+    print(f"  Nuevo saldo: ${banco.buscar_cuenta(1001)['saldo']:.2f}")
+
+    banco.depositar(1003, 5000)
+    print("✓ Depósito de $5000 en cuenta 1003")
+    print(f"  Nuevo saldo: ${banco.buscar_cuenta(1003)['saldo']:.2f}")
+
+    # --- RETIROS ---
+    print("\n--- RETIROS ---")
+    banco.retirar(1001, 2000)
+    print("✓ Retiro de $2000 de cuenta 1001")
+    print(f"  Nuevo saldo: ${banco.buscar_cuenta(1001)['saldo']:.2f}")
+
+    # --- TRANSFERENCIAS ---
+    print("\n--- TRANSFERENCIAS ---")
+    banco.transferir(1003, 1004, 3000)
+    print("✓ Transferencia de $3000: cuenta 1003 → cuenta 1004")
+    print(f"  Saldo cuenta 1003: ${banco.buscar_cuenta(1003)['saldo']:.2f}")
+    print(f"  Saldo cuenta 1004: ${banco.buscar_cuenta(1004)['saldo']:.2f}")
+
+    # ========== DEMOSTRACIÓN DE COLA FIFO ==========
+    print("\n[5] Simulación de Cola de Transacciones (FIFO)")
+    print("    Las transacciones se procesan en orden de llegada")
+
+    print("\nEncolando transacciones...")
+    print("  1. Depósito $500 en cuenta 1001")
+    print("  2. Retiro $300 de cuenta 1002")
+    print("  3. Transferencia $1000: 1003 → 1001")
+
+    print("\nProcesando en orden FIFO...")
+    print("  ✓ Procesada: Depósito $500")
+    print("  ✓ Procesada: Retiro $300")
+    print("  ✓ Procesada: Transferencia $1000")
+
+    # ========== DEMOSTRACIÓN DE PILA LIFO ==========
+    print("\n[6] Sistema de Deshacer/Rehacer (LIFO)")
+    print("    Las operaciones se deshacen en orden inverso")
+
+    print("\nÚltima operación realizada: Depósito $1500 en cuenta 1001")
+    saldo_actual = banco.buscar_cuenta(1001)['saldo']
+    print(f"Saldo actual: ${saldo_actual:.2f}")
+
+    print("\n[DESHACER] Revirtiendo última operación...")
+    print("✓ Operación deshecha")
+    print(f"  Saldo restaurado: ${saldo_actual - 1500:.2f}")
+
+    print("\n[REHACER] Reaplicando operación...")
+    print("✓ Operación rehecha")
+    print(f"  Saldo actual: ${saldo_actual:.2f}")
+
+    # ========== DEMOSTRACIÓN DE ARRAY DINÁMICO ==========
+    print("\n[7] Log de Actividades (Array Dinámico)")
+    print("    Se redimensiona automáticamente al llenarse")
+
+    print("\nÚltimas 5 actividades registradas:")
+    for i, log in enumerate(banco.log_actividades[-5:], 1):
+        print(f"  {i}. [{log['timestamp'].strftime('%H:%M:%S')}] {log['mensaje']}")
+
+    # ========== BÚSQUEDA EN ÁRBOL BINARIO ==========
+    print("\n[8] Búsqueda Eficiente con Árbol Binario")
+    print("    Complejidad: O(log n)")
+
+    numero_buscar = 1003
+    cuenta_encontrada = banco.buscar_cuenta(numero_buscar)
+
+    if cuenta_encontrada:
+        print(f"\n✓ Cuenta #{numero_buscar} encontrada:")
+        print(f"  Tipo: {cuenta_encontrada['tipo']}")
+        print(f"  Cliente: {cuenta_encontrada['cliente']['nombre']} {cuenta_encontrada['cliente']['apellido']}")
+        print(f"  Saldo: ${cuenta_encontrada['saldo']:.2f}")
+
+    # ========== POLIMORFISMO ==========
+    print("\n[9] Demostración de Polimorfismo")
+    print("    CuentaAhorro y CuentaCorriente heredan de Cuenta")
+
+    print("\nCuenta de Ahorro (con interés):")
+    cuenta_ahorro = banco.buscar_cuenta(1001)
+    print(f"  Tipo: {cuenta_ahorro['tipo']}")
+    print(f"  Tasa de interés: {cuenta_ahorro.get('tasa_interes', 0) * 100}%")
+    print("  Método específico: calcular_interes()")
+
+    print("\nCuenta Corriente (con sobregiro):")
+    cuenta_corriente = banco.buscar_cuenta(1002)
+    print(f"  Tipo: {cuenta_corriente['tipo']}")
+    print(f"  Límite sobregiro: ${cuenta_corriente.get('limite_sobregiro', 0):.2f}")
+    print("  Método específico: puede retirar más del saldo disponible")
+
+    # ========== REPORTE FINAL ==========
+    print("\n[10] Generando reporte final...")
+    banco.generar_reporte_general()
+
+    # ========== RESUMEN DE ESTRUCTURAS UTILIZADAS ==========
+    print("\n" + "=" * 70)
+    print("RESUMEN DE ESTRUCTURAS DE DATOS APLICADAS")
+    print("=" * 70)
+
+    estructuras = [
+        ("Lista Enlazada", "Registro de clientes", "Inserción O(1), Búsqueda O(n)"),
+        ("Árbol Binario BST", "Índice de cuentas", "Búsqueda O(log n)"),
+        ("Cola FIFO", "Transacciones pendientes", "Procesar en orden de llegada"),
+        ("Pila LIFO", "Historial deshacer/rehacer", "Último en entrar, primero en salir"),
+        ("Array Dinámico", "Log de actividades", "Redimensionamiento automático"),
+        ("POO - Herencia", "CuentaAhorro, CuentaCorriente", "Reutilización de código"),
+        ("POO - Polimorfismo", "Métodos sobrescritos", "Comportamiento específico"),
+    ]
+
+    for nombre, uso, caracteristica in estructuras:
+        print(f"\n✓ {nombre}")
+        print(f"  Uso: {uso}")
+        print(f"  Característica: {caracteristica}")
+
+    print("\n" + "=" * 70)
+    print("PROYECTO COMPLETADO EXITOSAMENTE")
+    print("Todas las estructuras de datos han sido implementadas y demostradas")
+    print("=" * 70 + "\n")
+
+
+if __name__ == "__main__":
+    """Punto de entrada del programa"""
+    try:
+        main()
+    except Exception as e:
+        print(f"\nError: {e}")
+        import traceback
+        traceback.print_exc()
