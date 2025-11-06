@@ -1,57 +1,41 @@
 """
 HERENCIA Y POLIMORFISMO
-CuentaAhorro - Clase hija que hereda de Cuenta
+CuentaCorriente - Otra clase hija que hereda de Cuenta
 """
 
-from datetime import datetime
-
-# Importar la clase padre (en tu proyecto real sería: from modelos.cuenta import Cuenta)
 # from cuenta import Cuenta
 
-class CuentaAhorro:  # En el código real: class CuentaAhorro(Cuenta):
+class CuentaCorriente:  # En el código real: class CuentaCorriente(Cuenta):
     """
-    Cuenta de Ahorro con tasa de interés.
+    Cuenta Corriente con sobregiro permitido.
     
     HERENCIA: Esta clase HEREDA de Cuenta (clase padre)
-    Extiende funcionalidad con: tasa de interés y límite de retiros mensuales
+    Extiende funcionalidad con: sobregiro y costo de mantenimiento
     
-    POLIMORFISMO: Sobrescribe métodos de la clase padre
+    POLIMORFISMO: Sobrescribe el método retirar() para permitir sobregiro
     """
     
-    def __init__(self, cliente, saldo_inicial=0.0, tasa_interes=0.02, limite_retiros=5):
+    def __init__(self, cliente, saldo_inicial=0.0, limite_sobregiro=1000.0, costo_mantenimiento=5.0):
         """
-        Inicializa una cuenta de ahorro
+        Inicializa una cuenta corriente
         
         Args:
             cliente (Cliente): Cliente propietario
             saldo_inicial (float): Saldo inicial
-            tasa_interes (float): Tasa de interés anual (default 2%)
-            limite_retiros (int): Límite de retiros mensuales
+            limite_sobregiro (float): Límite de sobregiro permitido
+            costo_mantenimiento (float): Costo mensual de mantenimiento
         """
-        # super().__init__(cliente, saldo_inicial)  # Llama al constructor padre
+        # super().__init__(cliente, saldo_inicial)
         
-        # Atributos específicos de CuentaAhorro
-        self.tasa_interes = tasa_interes
-        self.limite_retiros_mensual = limite_retiros
-        self.retiros_realizados = 0
-        self.mes_actual = datetime.now().month
-    
-    def calcular_interes(self):
-        """
-        Calcula y aplica el interés al saldo
-        Método específico de CuentaAhorro (no existe en clase padre)
-        
-        Returns:
-            float: Monto del interés generado
-        """
-        interes = self.saldo * self.tasa_interes
-        self.depositar(interes, f"Interés generado ({self.tasa_interes*100}%)")
-        return interes
+        # Atributos específicos de CuentaCorriente
+        self.limite_sobregiro = limite_sobregiro
+        self.costo_mantenimiento = costo_mantenimiento
+        self.sobregiro_utilizado = 0.0
     
     def retirar(self, monto, descripcion="Retiro"):
         """
-        POLIMORFISMO: Sobrescribe el método retirar() de la clase padre
-        Agrega validación de límite de retiros mensuales
+        POLIMORFISMO: Sobrescribe retirar() para permitir sobregiro
+        Permite retirar más dinero del disponible hasta el límite de sobregiro
         
         Args:
             monto (float): Cantidad a retirar
@@ -60,26 +44,29 @@ class CuentaAhorro:  # En el código real: class CuentaAhorro(Cuenta):
         Returns:
             bool: True si fue exitoso
         """
-        # Verificar si cambió el mes (resetear contador)
-        if datetime.now().month != self.mes_actual:
-            self.retiros_realizados = 0
-            self.mes_actual = datetime.now().month
+        if monto <= 0:
+            raise ValueError("El monto debe ser mayor a 0")
         
-        # Validar límite de retiros
-        if self.retiros_realizados >= self.limite_retiros_mensual:
-            raise Exception(f"Ha alcanzado el límite de {self.limite_retiros_mensual} retiros mensuales")
+        if not self.activa:
+            raise Exception("La cuenta está inactiva")
         
-        # Llamar al método de la clase padre
-        # resultado = super().retirar(monto, descripcion)
-        # self.retiros_realizados += 1
-        # return resultado
+        # Calcular saldo disponible (saldo + límite sobregiro)
+        saldo_disponible = self.saldo + self.limite_sobregiro
         
-        # Simulación para el ejemplo:
-        if monto > 0 and self.saldo >= monto:
-            self.saldo -= monto
-            self.retiros_realizados += 1
-            return True
-        return False
+        if monto > saldo_disponible:
+            raise ValueError(f"Monto excede el límite de sobregiro. Disponible: ${saldo_disponible:.2f}")
+        
+        # Realizar retiro
+        self.saldo -= monto
+        
+        # Calcular sobregiro utilizado
+        if self.saldo < 0:
+            self.sobregiro_utilizado = abs(self.saldo)
+        else:
+            self.sobregiro_utilizado = 0.0
+        
+        # self._registrar_transaccion("RETIRO", monto, descripcion)
+        return True
     
     def obtener_tipo_cuenta(self):
         """
@@ -88,38 +75,75 @@ class CuentaAhorro:  # En el código real: class CuentaAhorro(Cuenta):
         Returns:
             str: Tipo de cuenta
         """
-        return "AHORRO"
+        return "CORRIENTE"
     
     def calcular_mantenimiento(self):
         """
         Implementa el método abstracto de la clase padre
-        Cuenta de ahorro no tiene costo de mantenimiento
+        Retorna el costo de mantenimiento mensual
         
         Returns:
             float: Costo de mantenimiento
         """
-        return 0.0
+        return self.costo_mantenimiento
     
-    def obtener_retiros_disponibles(self):
+    def cobrar_mantenimiento(self):
         """
-        Calcula cuántos retiros quedan disponibles este mes
+        Cobra el costo de mantenimiento mensual
+        Método específico de CuentaCorriente
         
         Returns:
-            int: Número de retiros disponibles
+            float: Monto cobrado
         """
-        return self.limite_retiros_mensual - self.retiros_realizados
+        monto = self.calcular_mantenimiento()
+        
+        if monto > 0:
+            self.saldo -= monto
+            # self._registrar_transaccion("MANTENIMIENTO", monto, "Cobro mensual de mantenimiento")
+        
+        return monto
     
-    def cambiar_tasa_interes(self, nueva_tasa):
+    def obtener_saldo_disponible(self):
         """
-        Actualiza la tasa de interés
+        Calcula el saldo disponible incluyendo sobregiro
+        
+        Returns:
+            float: Saldo disponible total
+        """
+        return self.saldo + self.limite_sobregiro
+    
+    def obtener_sobregiro_disponible(self):
+        """
+        Calcula cuánto sobregiro queda disponible
+        
+        Returns:
+            float: Sobregiro disponible
+        """
+        return self.limite_sobregiro - self.sobregiro_utilizado
+    
+    def esta_en_sobregiro(self):
+        """
+        Verifica si la cuenta está usando sobregiro
+        
+        Returns:
+            bool: True si está en sobregiro
+        """
+        return self.saldo < 0
+    
+    def ajustar_limite_sobregiro(self, nuevo_limite):
+        """
+        Ajusta el límite de sobregiro
         
         Args:
-            nueva_tasa (float): Nueva tasa de interés
+            nuevo_limite (float): Nuevo límite
+            
+        Returns:
+            bool: True si fue exitoso
         """
-        if 0 <= nueva_tasa <= 1:
-            self.tasa_interes = nueva_tasa
+        if nuevo_limite >= 0:
+            self.limite_sobregiro = nuevo_limite
             return True
-        raise ValueError("La tasa debe estar entre 0 y 1")
+        raise ValueError("El límite debe ser mayor o igual a 0")
     
     def obtener_info(self):
         """
@@ -128,20 +152,24 @@ class CuentaAhorro:  # En el código real: class CuentaAhorro(Cuenta):
         Returns:
             dict: Información completa de la cuenta
         """
-        # info = super().obtener_info()  # Obtener info de la clase padre
+        # info = super().obtener_info()
         info = {
             'numero_cuenta': self.numero_cuenta,
             'tipo': self.obtener_tipo_cuenta(),
             'saldo': self.saldo
         }
         
-        # Agregar información específica de CuentaAhorro
-        info['tasa_interes'] = f"{self.tasa_interes*100}%"
-        info['retiros_disponibles'] = self.obtener_retiros_disponibles()
-        info['limite_retiros_mensual'] = self.limite_retiros_mensual
+        # Agregar información específica de CuentaCorriente
+        info['limite_sobregiro'] = self.limite_sobregiro
+        info['sobregiro_utilizado'] = self.sobregiro_utilizado
+        info['sobregiro_disponible'] = self.obtener_sobregiro_disponible()
+        info['saldo_disponible_total'] = self.obtener_saldo_disponible()
+        info['costo_mantenimiento'] = self.costo_mantenimiento
+        info['en_sobregiro'] = self.esta_en_sobregiro()
         
         return info
     
     def __str__(self):
         """Representación personalizada en string"""
-        return f"Cuenta Ahorro {self.numero_cuenta} - Saldo: ${self.saldo:.2f} (Interés: {self.tasa_interes*100}%)"
+        estado = "EN SOBREGIRO" if self.esta_en_sobregiro() else "NORMAL"
+        return f"Cuenta Corriente {self.numero_cuenta} - Saldo: ${self.saldo:.2f} [{estado}]"
