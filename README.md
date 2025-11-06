@@ -1,188 +1,182 @@
 """
-APLICACIÓN DE COLA (FIFO)
-Sistema de procesamiento de transacciones bancarias
-Las transacciones se procesan en orden de llegada
+APLICACIÓN DE PILA (LIFO)
+Sistema de deshacer/rehacer operaciones bancarias
+Las operaciones se deshacen en orden inverso (última primero)
 """
 
 from datetime import datetime
 
-# from estructuras.cola import Cola
+# from estructuras.pila import Pila
 
-class Transaccion:
+class Operacion:
     """
-    Representa una transacción bancaria individual
+    Representa una operación reversible en el sistema
     """
     
-    contador_transacciones = 0
-    
-    def __init__(self, tipo, monto, cuenta_origen, cuenta_destino=None, descripcion=""):
+    def __init__(self, tipo, cuenta, monto_anterior, monto_nuevo, descripcion=""):
         """
-        Inicializa una transacción
+        Inicializa una operación
         
         Args:
-            tipo (str): DEPOSITO, RETIRO, TRANSFERENCIA
-            monto (float): Monto de la transacción
-            cuenta_origen (Cuenta): Cuenta que origina la transacción
-            cuenta_destino (Cuenta): Cuenta destino (para transferencias)
-            descripcion (str): Descripción adicional
+            tipo (str): Tipo de operación
+            cuenta (Cuenta): Cuenta afectada
+            monto_anterior (float): Saldo antes de la operación
+            monto_nuevo (float): Saldo después de la operación
+            descripcion (str): Descripción de la operación
         """
-        Transaccion.contador_transacciones += 1
-        self.id_transaccion = Transaccion.contador_transacciones
         self.tipo = tipo
-        self.monto = monto
-        self.cuenta_origen = cuenta_origen
-        self.cuenta_destino = cuenta_destino
+        self.cuenta = cuenta
+        self.monto_anterior = monto_anterior
+        self.monto_nuevo = monto_nuevo
         self.descripcion = descripcion
         self.fecha = datetime.now()
-        self.estado = "PENDIENTE"  # PENDIENTE, PROCESADA, FALLIDA
-        self.mensaje_error = None
     
-    def procesar(self):
-        """
-        Ejecuta la transacción
-        
-        Returns:
-            bool: True si fue exitosa
-        """
-        try:
-            if self.tipo == "DEPOSITO":
-                self.cuenta_origen.depositar(self.monto, self.descripcion)
-                
-            elif self.tipo == "RETIRO":
-                self.cuenta_origen.retirar(self.monto, self.descripcion)
-                
-            elif self.tipo == "TRANSFERENCIA":
-                if self.cuenta_destino is None:
-                    raise ValueError("Se requiere cuenta destino para transferencias")
-                self.cuenta_origen.retirar(self.monto, f"Transferencia a cuenta {self.cuenta_destino.numero_cuenta}")
-                self.cuenta_destino.depositar(self.monto, f"Transferencia desde cuenta {self.cuenta_origen.numero_cuenta}")
-            
-            self.estado = "PROCESADA"
-            return True
-            
-        except Exception as e:
-            self.estado = "FALLIDA"
-            self.mensaje_error = str(e)
-            return False
+    def revertir(self):
+        """Revierte la operación"""
+        self.cuenta.saldo = self.monto_anterior
+        return True
     
-    def __str__(self):
-        return f"Transacción #{self.id_transaccion} - {self.tipo}: ${self.monto:.2f} [{self.estado}]"
-
-
-class SistemaTransacciones:
-    """
-    Gestiona la cola de transacciones pendientes usando Cola FIFO
-    
-    APLICACIÓN DE COLA:
-    - Las transacciones se encolan cuando se reciben
-    - Se procesan en orden de llegada (FIFO)
-    - Simula el sistema de un cajero automático o ventanilla
-    """
-    
-    def __init__(self):
-        """Inicializa el sistema con una cola vacía"""
-        # self.cola_pendientes = Cola()  # Cola FIFO para transacciones
-        self.cola_pendientes = []  # Simulación de cola
-        self.transacciones_procesadas = []
-        self.transacciones_fallidas = []
-    
-    def agregar_transaccion(self, transaccion):
-        """
-        Agrega una transacción a la cola de pendientes
-        
-        Args:
-            transaccion (Transaccion): Transacción a encolar
-            
-        Returns:
-            int: ID de la transacción
-        """
-        # self.cola_pendientes.encolar(transaccion)
-        self.cola_pendientes.append(transaccion)
-        print(f"✓ Transacción #{transaccion.id_transaccion} agregada a la cola")
-        print(f"  Transacciones en cola: {len(self.cola_pendientes)}")
-        return transaccion.id_transaccion
-    
-    def procesar_siguiente(self):
-        """
-        Procesa la siguiente transacción en la cola (FIFO)
-        
-        Returns:
-            Transaccion: Transacción procesada o None
-        """
-        # if self.cola_pendientes.esta_vacia():
-        if not self.cola_pendientes:
-            print("⚠ No hay transacciones pendientes")
-            return None
-        
-        # Desencolar la primera transacción (FIFO)
-        # transaccion = self.cola_pendientes.desencolar()
-        transaccion = self.cola_pendientes.pop(0)
-        
-        print(f"\n⏳ Procesando: {transaccion}")
-        
-        # Procesar la transacción
-        exitosa = transaccion.procesar()
-        
-        if exitosa:
-            self.transacciones_procesadas.append(transaccion)
-            print(f"✓ Transacción #{transaccion.id_transaccion} procesada exitosamente")
-        else:
-            self.transacciones_fallidas.append(transaccion)
-            print(f"✗ Transacción #{transaccion.id_transaccion} fallida: {transaccion.mensaje_error}")
-        
-        return transaccion
-    
-    def procesar_todas(self):
-        """
-        Procesa todas las transacciones pendientes en orden FIFO
-        
-        Returns:
-            dict: Estadísticas del procesamiento
-        """
-        print("\n" + "="*60)
-        print("PROCESANDO TODAS LAS TRANSACCIONES EN COLA")
-        print("="*60)
-        
-        total = len(self.cola_pendientes)
-        procesadas = 0
-        
-        # while not self.cola_pendientes.esta_vacia():
-        while self.cola_pendientes:
-            self.procesar_siguiente()
-            procesadas += 1
-        
-        print("\n" + "="*60)
-        print(f"PROCESAMIENTO COMPLETADO")
-        print(f"Total procesadas: {procesadas}")
-        print(f"Exitosas: {len(self.transacciones_procesadas)}")
-        print(f"Fallidas: {len(self.transacciones_fallidas)}")
-        print("="*60 + "\n")
-        
-        return {
-            'total': total,
-            'exitosas': len(self.transacciones_procesadas),
-            'fallidas': len(self.transacciones_fallidas)
-        }
-    
-    def obtener_transacciones_pendientes(self):
-        """Retorna lista de transacciones pendientes"""
-        return self.cola_pendientes.copy() if isinstance(self.cola_pendientes, list) else []
-    
-    def obtener_estadisticas(self):
-        """Retorna estadísticas del sistema"""
-        return {
-            'pendientes': len(self.cola_pendientes),
-            'procesadas': len(self.transacciones_procesadas),
-            'fallidas': len(self.transacciones_fallidas),
-            'total': Transaccion.contador_transacciones
-        }
-    
-    def limpiar_historial(self):
-        """Limpia las transacciones procesadas y fallidas"""
-        self.transacciones_procesadas = []
-        self.transacciones_fallidas = []
+    def reaplicar(self):
+        """Reaplica la operación"""
+        self.cuenta.saldo = self.monto_nuevo
         return True
     
     def __str__(self):
+        return f"{self.tipo}: ${self.monto_anterior:.2f} → ${self.monto_nuevo:.2f}"
+
+
+class HistorialOperaciones:
+    """
+    Gestiona el historial de operaciones con funcionalidad de deshacer/rehacer
+    
+    APLICACIÓN DE PILA LIFO:
+    - pila_deshacer: Guarda operaciones realizadas
+    - pila_rehacer: Guarda operaciones deshechas
+    - Deshacer: Saca de pila_deshacer (última operación)
+    - Rehacer: Saca de pila_rehacer (última operación deshecha)
+    """
+    
+    def __init__(self):
+        """Inicializa el historial con dos pilas"""
+        # self.pila_deshacer = Pila()  # Pila LIFO para operaciones
+        # self.pila_rehacer = Pila()   # Pila LIFO para rehacer
+        self.pila_deshacer = []  # Simulación de pila
+        self.pila_rehacer = []   # Simulación de pila
+    
+    def registrar_operacion(self, operacion):
+        """
+        Registra una nueva operación en la pila de deshacer
+        
+        Args:
+            operacion (Operacion): Operación a registrar
+        """
+        # self.pila_deshacer.apilar(operacion)
+        self.pila_deshacer.append(operacion)
+        
+        # Al hacer una nueva operación, limpiar pila de rehacer
+        # self.pila_rehacer.limpiar()
+        self.pila_rehacer = []
+        
+        print(f"✓ Operación registrada: {operacion}")
+    
+    def deshacer(self):
+        """
+        Deshace la última operación realizada (LIFO)
+        
+        Returns:
+            Operacion: Operación deshecha o None
+        """
+        # if self.pila_deshacer.esta_vacia():
+        if not self.pila_deshacer:
+            print("⚠ No hay operaciones para deshacer")
+            return None
+        
+        # Desapilar la última operación (LIFO)
+        # operacion = self.pila_deshacer.desapilar()
+        operacion = self.pila_deshacer.pop()
+        
+        # Revertir la operación
+        operacion.revertir()
+        
+        # Mover a pila de rehacer
+        # self.pila_rehacer.apilar(operacion)
+        self.pila_rehacer.append(operacion)
+        
+        print(f"↶ Operación deshecha: {operacion}")
+        print(f"  Nuevo saldo: ${operacion.cuenta.saldo:.2f}")
+        
+        return operacion
+    
+    def rehacer(self):
+        """
+        Rehace la última operación deshecha (LIFO)
+        
+        Returns:
+            Operacion: Operación rehecha o None
+        """
+        # if self.pila_rehacer.esta_vacia():
+        if not self.pila_rehacer:
+            print("⚠ No hay operaciones para rehacer")
+            return None
+        
+        # Desapilar de pila rehacer (LIFO)
+        # operacion = self.pila_rehacer.desapilar()
+        operacion = self.pila_rehacer.pop()
+        
+        # Reaplicar la operación
+        operacion.reaplicar()
+        
+        # Mover de vuelta a pila de deshacer
+        # self.pila_deshacer.apilar(operacion)
+        self.pila_deshacer.append(operacion)
+        
+        print(f"↷ Operación rehecha: {operacion}")
+        print(f"  Nuevo saldo: ${operacion.cuenta.saldo:.2f}")
+        
+        return operacion
+    
+    def puede_deshacer(self):
+        """Verifica si hay operaciones para deshacer"""
+        # return not self.pila_deshacer.esta_vacia()
+        return len(self.pila_deshacer) > 0
+    
+    def puede_rehacer(self):
+        """Verifica si hay operaciones para rehacer"""
+        # return not self.pila_rehacer.esta_vacia()
+        return len(self.pila_rehacer) > 0
+    
+    def obtener_historial(self, ultimas_n=10):
+        """
+        Obtiene las últimas N operaciones
+        
+        Args:
+            ultimas_n (int): Número de operaciones a mostrar
+            
+        Returns:
+            list: Lista de operaciones
+        """
+        # operaciones = self.pila_deshacer.items[-ultimas_n:]
+        operaciones = self.pila_deshacer[-ultimas_n:]
+        return operaciones
+    
+    def limpiar(self):
+        """Limpia ambas pilas"""
+        # self.pila_deshacer.limpiar()
+        # self.pila_rehacer.limpiar()
+        self.pila_deshacer = []
+        self.pila_rehacer = []
+        print("✓ Historial limpiado")
+        return True
+    
+    def obtener_estadisticas(self):
+        """Retorna estadísticas del historial"""
+        return {
+            'operaciones_realizadas': len(self.pila_deshacer),
+            'operaciones_deshechas': len(self.pila_rehacer),
+            'puede_deshacer': self.puede_deshacer(),
+            'puede_rehacer': self.puede_rehacer()
+        }
+    
+    def __str__(self):
         stats = self.obtener_estadisticas()
-        return f"SistemaTransacciones(pendientes={stats['pendientes']}, procesadas={stats['procesadas']})"
+        return f"HistorialOperaciones(realizadas={stats['operaciones_realizadas']}, deshechas={stats['operaciones_deshechas']})"
