@@ -1,121 +1,128 @@
-"ESTRUCTURA DE DATOS: LISTA ENLAZADA"
-"Aplicación: Registro y gestión de clientes del banco"
+"""
+ESTRUCTURA DE DATOS: ARRAY DINÁMICO
+Aplicación: Almacenar historial de transacciones con redimensionamiento automático
+"""
 
-class NodoLista:
-    """Nodo individual de la lista enlazada"""
-    
-    def __init__(self, dato):
-        self.dato = dato
-        self.siguiente = None
-
-
-class ListaEnlazada:
+class ArrayDinamico:
     """
-    Lista enlazada simple para almacenar clientes.
-    Permite inserción, búsqueda y eliminación eficientes.
+    Array que crece automáticamente cuando se llena.
+    Similar a la implementación interna de list() en Python.
     """
     
-    def __init__(self):
-        """Inicializa una lista vacía"""
-        self.cabeza = None
-        self.tamano_lista = 0
-    
-    def esta_vacia(self):
-        """Verifica si la lista está vacía"""
-        return self.cabeza is None
-    
-    def agregar(self, dato):
+    def __init__(self, capacidad_inicial=10):
         """
-        Agrega un elemento al final de la lista
-        Complejidad: O(n) - debe recorrer hasta el final
+        Inicializa el array con una capacidad inicial
         """
-        nuevo_nodo = NodoLista(dato)
+        self.capacidad = capacidad_inicial
+        self.tamano_actual = 0
+        self.array = [None] * self.capacidad
+    
+    def agregar(self, elemento):
+        """
+        Agrega un elemento al final del array.
+        Si está lleno, duplica la capacidad.
+        Complejidad: O(1) amortizado, O(n) cuando redimensiona
+        """
+        if self.tamano_actual == self.capacidad:
+            self._redimensionar()
         
-        if self.esta_vacia():
-            self.cabeza = nuevo_nodo
-        else:
-            actual = self.cabeza
-            while actual.siguiente:
-                actual = actual.siguiente
-            actual.siguiente = nuevo_nodo
-        
-        self.tamano_lista += 1
+        self.array[self.tamano_actual] = elemento
+        self.tamano_actual += 1
         return True
     
-    def agregar_al_inicio(self, dato):
+    def _redimensionar(self):
         """
-        Agrega un elemento al inicio de la lista
+        Duplica la capacidad del array cuando se llena
+        Complejidad: O(n)
+        """
+        self.capacidad *= 2
+        nuevo_array = [None] * self.capacidad
+        
+        # Copiar elementos al nuevo array
+        for i in range(self.tamano_actual):
+            nuevo_array[i] = self.array[i]
+        
+        self.array = nuevo_array
+        print(f"Array redimensionado a capacidad: {self.capacidad}")
+    
+    def obtener(self, indice):
+        """
+        Obtiene el elemento en el índice dado
         Complejidad: O(1)
         """
-        nuevo_nodo = NodoLista(dato)
-        nuevo_nodo.siguiente = self.cabeza
-        self.cabeza = nuevo_nodo
-        self.tamano_lista += 1
-        return True
+        if 0 <= indice < self.tamano_actual:
+            return self.array[indice]
+        raise IndexError(f"Índice {indice} fuera de rango")
     
-    def buscar(self, criterio):
+    def actualizar(self, indice, elemento):
         """
-        Busca un elemento que cumpla el criterio (función lambda)
-        Complejidad: O(n)
+        Actualiza el elemento en el índice dado
+        Complejidad: O(1)
         """
-        actual = self.cabeza
-        while actual:
-            if criterio(actual.dato):
-                return actual.dato
-            actual = actual.siguiente
-        return None
-    
-    def eliminar(self, criterio):
-        """
-        Elimina el primer elemento que cumpla el criterio
-        Complejidad: O(n)
-        """
-        if self.esta_vacia():
-            return False
-        
-        # Si es el primer elemento
-        if criterio(self.cabeza.dato):
-            self.cabeza = self.cabeza.siguiente
-            self.tamano_lista -= 1
+        if 0 <= indice < self.tamano_actual:
+            self.array[indice] = elemento
             return True
-        
-        # Buscar en el resto de la lista
-        actual = self.cabeza
-        while actual.siguiente:
-            if criterio(actual.siguiente.dato):
-                actual.siguiente = actual.siguiente.siguiente
-                self.tamano_lista -= 1
-                return True
-            actual = actual.siguiente
-        
-        return False
+        raise IndexError(f"Índice {indice} fuera de rango")
     
-    def listar_todos(self):
+    def eliminar(self, indice):
         """
-        Retorna una lista con todos los elementos
+        Elimina el elemento en el índice dado
         Complejidad: O(n)
         """
-        elementos = []
-        actual = self.cabeza
-        while actual:
-            elementos.append(actual.dato)
-            actual = actual.siguiente
-        return elementos
+        if 0 <= indice < self.tamano_actual:
+            # Desplazar elementos a la izquierda
+            for i in range(indice, self.tamano_actual - 1):
+                self.array[i] = self.array[i + 1]
+            
+            self.array[self.tamano_actual - 1] = None
+            self.tamano_actual -= 1
+            return True
+        raise IndexError(f"Índice {indice} fuera de rango")
+    
+    def buscar(self, elemento):
+        """
+        Busca un elemento y retorna su índice
+        Complejidad: O(n)
+        """
+        for i in range(self.tamano_actual):
+            if self.array[i] == elemento:
+                return i
+        return -1
+    
+    def esta_vacio(self):
+        """Verifica si el array está vacío"""
+        return self.tamano_actual == 0
     
     def tamano(self):
-        """Retorna el tamaño de la lista"""
-        return self.tamano_lista
+        """Retorna el tamaño actual (elementos almacenados)"""
+        return self.tamano_actual
+    
+    def obtener_capacidad(self):
+        """Retorna la capacidad total del array"""
+        return self.capacidad
+    
+    def listar_elementos(self):
+        """Retorna lista con todos los elementos"""
+        return [self.array[i] for i in range(self.tamano_actual)]
     
     def limpiar(self):
-        """Vacía completamente la lista"""
-        self.cabeza = None
-        self.tamano_lista = 0
+        """Vacía el array"""
+        self.array = [None] * self.capacidad
+        self.tamano_actual = 0
     
     def __len__(self):
-        """Permite usar len() con la lista"""
-        return self.tamano_lista
+        """Permite usar len() con el array"""
+        return self.tamano_actual
+    
+    def __getitem__(self, indice):
+        """Permite acceso con array[indice]"""
+        return self.obtener(indice)
+    
+    def __setitem__(self, indice, valor):
+        """Permite asignación con array[indice] = valor"""
+        self.actualizar(indice, valor)
     
     def __str__(self):
-        """Representación en string de la lista"""
-        elementos = self.listar_todos()
-        return f"ListaEnlazada({elementos})"
+        """Representación en string del array"""
+        elementos = self.listar_elementos()
+        return f"ArrayDinamico(tamano={self.tamano_actual}, capacidad={self.capacidad}, elementos={elementos})"
