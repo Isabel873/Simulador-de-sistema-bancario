@@ -1,20 +1,63 @@
 # Simulador-de-sistema-bancario
 Desarrollar un sistema bancario completo 
 
-# Sistema de Gestión Bancaria con Estructuras de Datos Avanzadas
+"""
+ESTRUCTURA DE DATOS: COLA (FIFO - First In First Out)
+Aplicación: Procesar transacciones bancarias en orden de llegada
+"""
 
-# Descripción del Proyecto
-Sistema bancario completo que implementa diversas estructuras de datos para gestionar clientes, cuentas y transacciones de manera eficiente.
-
-# Estructuras de Datos Implementadas
-- **Pila (LIFO)**: Sistema de deshacer/rehacer operaciones
-- **Cola (FIFO)**: Procesamiento de transacciones pendientes  
-- **Lista Enlazada**: Registro completo de clientes
-- **Árbol Binario de Búsqueda**: Búsqueda eficiente de cuentas
-- **Arrays Dinámicos**: Historial de transacciones
-
-# Instalación y Ejecución
-
-# Clonar repositorio
-git clone https://github.com/Isabel873/Simulador-de-sistema-bancario.git
-cd sistema-bancario
+class Cola:
+    """
+    Cola FIFO para gestionar transacciones pendientes.
+    Primer elemento en entrar es el primero en salir.
+    """
+    
+    def __init__(self):
+        """Inicializa una cola vacía usando lista de Python"""
+        self.items = []
+    
+    def encolar(self, item):
+        """
+        Agrega un elemento al final de la cola
+        Complejidad: O(1) amortizado
+        """
+        self.items.append(item)
+        return True
+    
+    def desencolar(self):
+        """
+        Remueve y retorna el primer elemento de la cola
+        Complejidad: O(n) debido a reorganización de lista
+        """
+        if not self.esta_vacia():
+            return self.items.pop(0)
+        raise IndexError("No se puede desencolar: cola vacía")
+    
+    def ver_primero(self):
+        """
+        Retorna el primer elemento sin removerlo
+        Complejidad: O(1)
+        """
+        if not self.esta_vacia():
+            return self.items[0]
+        return None
+    
+    def esta_vacia(self):
+        """Verifica si la cola está vacía"""
+        return len(self.items) == 0
+    
+    def tamano(self):
+        """Retorna el número de elementos en la cola"""
+        return len(self.items)
+    
+    def limpiar(self):
+        """Vacía completamente la cola"""
+        self.items = []
+    
+    def __str__(self):
+        """Representación en string de la cola"""
+        return f"Cola({self.items})"
+    
+    def __len__(self):
+        """Permite usar len() con la cola"""
+        return self.tamano()
