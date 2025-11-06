@@ -9,9 +9,3 @@ Sistema bancario completo que implementa diversas estructuras de datos para gest
 - **Lista Enlazada**: Registro completo de clientes
 - **Árbol Binario de Búsqueda**: Búsqueda eficiente de cuentas
 - **Arrays Dinámicos**: Historial de transacciones
-
-# Instalación y Ejecución
-
-# Clonar repositorio
-git clone https://github.com/Isabel873/Simulador-de-sistema-bancario.git
-cd sistema-bancario
