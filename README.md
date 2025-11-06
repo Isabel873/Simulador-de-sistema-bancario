@@ -1,203 +1,245 @@
 """
-PROGRAMA PRINCIPAL
-Demostración del Sistema Bancario
+PRUEBAS UNITARIAS
+Valida el correcto funcionamiento de todas las estructuras y clases.
 
-Este archivo demuestra el uso de TODAS las estructuras de datos:
-✓ Listas Enlazadas - Registro de clientes
-✓ Árboles Binarios de Búsqueda - Índice de cuentas
-✓ Colas FIFO - Transacciones pendientes
-✓ Pilas LIFO - Historial de operaciones
-✓ Arrays Dinámicos - Log de actividades
-✓ POO - Herencia y Polimorfismo
+Comandos para ejecutar:
+    pytest tests/test_sistema_bancario.py -v
+    pytest tests/ -v --cov=src
 """
 
-# from banco import Banco
+import pytest
+import sys
+import os
+
+# Agregar el directorio src al path para las importaciones
+sys.path.append(os.path.join(os.path.dirname(__file__), '..', 'src'))
+
+# Importaciones REALES de tus clases
+from estructuras.pila import Pila
+from estructuras.cola import Cola
+from estructuras.lista import ListaEnlazada
+from estructuras.arbol_binario import ArbolBinarioBusqueda
+from modelos.cliente import Cliente
+from modelos.cuenta import CuentaAhorro, CuentaCorriente
+from modelos.transaccion import Transaccion
+from sistema_bancario import SistemaBancario
 
 
-def main():
-    """Función principal del programa"""
-    print("=" * 70)
-    print("SISTEMA DE GESTIÓN BANCARIA")
-    print("Proyecto: Aplicación de Estructuras de Datos")
-    print("=" * 70)
+# ========== TESTS PARA COLA (FIFO) ==========
+class TestCola:
+    """Tests para estructura Cola FIFO"""
 
-    # ========== INICIALIZACIÓN DEL BANCO ==========
-    print("\n[1] Inicializando banco...")
-    banco = Banco("Banco Nacional del Ecuador")
-    print(f"✓ {banco}")
+    def test_crear_cola_vacia(self):
+        cola = Cola()
+        assert cola.esta_vacia()
+        assert len(cola) == 0
 
-    # ========== REGISTRO DE CLIENTES (Lista Enlazada) ==========
-    print("\n[2] Registrando clientes...")
-    print("    Estructura de datos: LISTA ENLAZADA")
+    def test_encolar_elementos(self):
+        cola = Cola()
+        cola.encolar(1)
+        cola.encolar(2)
+        cola.encolar(3)
+        assert len(cola) == 3
+        assert not cola.esta_vacia()
 
-    cliente1 = banco.registrar_cliente(
-        "Juan", "Pérez", "1234567890",
-        "juan.perez@email.com", "0987654321", "Guayaquil"
-    )
+    def test_desencolar_fifo(self):
+        cola = Cola()
+        cola.encolar("primero")
+        cola.encolar("segundo")
+        cola.encolar("tercero")
 
-    cliente2 = banco.registrar_cliente(
-        "María", "González", "0987654321",
-        "maria.gonzalez@email.com", "0998765432", "Quito"
-    )
+        primero = cola.desencolar()
+        segundo = cola.desencolar()
 
-    cliente3 = banco.registrar_cliente(
-        "Carlos", "Rodríguez", "1122334455",
-        "carlos.rodriguez@email.com", "0976543210", "Cuenca"
-    )
+        assert primero == "primero"
+        assert segundo == "segundo"
+        assert len(cola) == 1
 
-    print(f"✓ {len(banco.registro_clientes)} clientes registrados")
+    def test_ver_primero_sin_remover(self):
+        cola = Cola()
+        cola.encolar(10)
+        cola.encolar(20)
+        cola.encolar(30)
 
-    # ========== CREACIÓN DE CUENTAS (Árbol Binario) ==========
-    print("\n[3] Creando cuentas bancarias...")
-    print("    Estructura de datos: ÁRBOL BINARIO DE BÚSQUEDA")
-    print("    Búsqueda de cuentas en O(log n)")
+        primero = cola.frente()
+        assert primero == 10
+        assert len(cola) == 3
 
-    # Cuenta de ahorro para Juan (Herencia: CuentaAhorro)
-    cuenta1 = banco.crear_cuenta_ahorro("1234567890", 5000, 0.03)
-    print(f"✓ Cuenta Ahorro #{cuenta1['numero']} creada (tasa: 3%)")
-
-    # Cuenta corriente para Juan (Herencia: CuentaCorriente)
-    cuenta2 = banco.crear_cuenta_corriente("1234567890", 2000, 1500)
-    print(f"✓ Cuenta Corriente #{cuenta2['numero']} creada (sobregiro: $1500)")
-
-    # Cuentas para María
-    cuenta3 = banco.crear_cuenta_ahorro("0987654321", 10000, 0.025)
-    print(f"✓ Cuenta Ahorro #{cuenta3['numero']} creada (tasa: 2.5%)")
-
-    # Cuenta para Carlos
-    cuenta4 = banco.crear_cuenta_corriente("1122334455", 3000, 2000)
-    print(f"✓ Cuenta Corriente #{cuenta4['numero']} creada (sobregiro: $2000)")
-
-    print(f"\n✓ Total de cuentas en el sistema: {len(banco.indice_cuentas)}")
-
-    # ========== OPERACIONES BANCARIAS ==========
-    print("\n[4] Realizando operaciones bancarias...")
-
-    # --- DEPÓSITOS ---
-    print("\n--- DEPÓSITOS ---")
-    banco.depositar(1001, 1500)
-    print("✓ Depósito de $1500 en cuenta 1001")
-    print(f"  Nuevo saldo: ${banco.buscar_cuenta(1001)['saldo']:.2f}")
-
-    banco.depositar(1003, 5000)
-    print("✓ Depósito de $5000 en cuenta 1003")
-    print(f"  Nuevo saldo: ${banco.buscar_cuenta(1003)['saldo']:.2f}")
-
-    # --- RETIROS ---
-    print("\n--- RETIROS ---")
-    banco.retirar(1001, 2000)
-    print("✓ Retiro de $2000 de cuenta 1001")
-    print(f"  Nuevo saldo: ${banco.buscar_cuenta(1001)['saldo']:.2f}")
-
-    # --- TRANSFERENCIAS ---
-    print("\n--- TRANSFERENCIAS ---")
-    banco.transferir(1003, 1004, 3000)
-    print("✓ Transferencia de $3000: cuenta 1003 → cuenta 1004")
-    print(f"  Saldo cuenta 1003: ${banco.buscar_cuenta(1003)['saldo']:.2f}")
-    print(f"  Saldo cuenta 1004: ${banco.buscar_cuenta(1004)['saldo']:.2f}")
-
-    # ========== DEMOSTRACIÓN DE COLA FIFO ==========
-    print("\n[5] Simulación de Cola de Transacciones (FIFO)")
-    print("    Las transacciones se procesan en orden de llegada")
-
-    print("\nEncolando transacciones...")
-    print("  1. Depósito $500 en cuenta 1001")
-    print("  2. Retiro $300 de cuenta 1002")
-    print("  3. Transferencia $1000: 1003 → 1001")
-
-    print("\nProcesando en orden FIFO...")
-    print("  ✓ Procesada: Depósito $500")
-    print("  ✓ Procesada: Retiro $300")
-    print("  ✓ Procesada: Transferencia $1000")
-
-    # ========== DEMOSTRACIÓN DE PILA LIFO ==========
-    print("\n[6] Sistema de Deshacer/Rehacer (LIFO)")
-    print("    Las operaciones se deshacen en orden inverso")
-
-    print("\nÚltima operación realizada: Depósito $1500 en cuenta 1001")
-    saldo_actual = banco.buscar_cuenta(1001)['saldo']
-    print(f"Saldo actual: ${saldo_actual:.2f}")
-
-    print("\n[DESHACER] Revirtiendo última operación...")
-    print("✓ Operación deshecha")
-    print(f"  Saldo restaurado: ${saldo_actual - 1500:.2f}")
-
-    print("\n[REHACER] Reaplicando operación...")
-    print("✓ Operación rehecha")
-    print(f"  Saldo actual: ${saldo_actual:.2f}")
-
-    # ========== DEMOSTRACIÓN DE ARRAY DINÁMICO ==========
-    print("\n[7] Log de Actividades (Array Dinámico)")
-    print("    Se redimensiona automáticamente al llenarse")
-
-    print("\nÚltimas 5 actividades registradas:")
-    for i, log in enumerate(banco.log_actividades[-5:], 1):
-        print(f"  {i}. [{log['timestamp'].strftime('%H:%M:%S')}] {log['mensaje']}")
-
-    # ========== BÚSQUEDA EN ÁRBOL BINARIO ==========
-    print("\n[8] Búsqueda Eficiente con Árbol Binario")
-    print("    Complejidad: O(log n)")
-
-    numero_buscar = 1003
-    cuenta_encontrada = banco.buscar_cuenta(numero_buscar)
-
-    if cuenta_encontrada:
-        print(f"\n✓ Cuenta #{numero_buscar} encontrada:")
-        print(f"  Tipo: {cuenta_encontrada['tipo']}")
-        print(f"  Cliente: {cuenta_encontrada['cliente']['nombre']} {cuenta_encontrada['cliente']['apellido']}")
-        print(f"  Saldo: ${cuenta_encontrada['saldo']:.2f}")
-
-    # ========== POLIMORFISMO ==========
-    print("\n[9] Demostración de Polimorfismo")
-    print("    CuentaAhorro y CuentaCorriente heredan de Cuenta")
-
-    print("\nCuenta de Ahorro (con interés):")
-    cuenta_ahorro = banco.buscar_cuenta(1001)
-    print(f"  Tipo: {cuenta_ahorro['tipo']}")
-    print(f"  Tasa de interés: {cuenta_ahorro.get('tasa_interes', 0) * 100}%")
-    print("  Método específico: calcular_interes()")
-
-    print("\nCuenta Corriente (con sobregiro):")
-    cuenta_corriente = banco.buscar_cuenta(1002)
-    print(f"  Tipo: {cuenta_corriente['tipo']}")
-    print(f"  Límite sobregiro: ${cuenta_corriente.get('limite_sobregiro', 0):.2f}")
-    print("  Método específico: puede retirar más del saldo disponible")
-
-    # ========== REPORTE FINAL ==========
-    print("\n[10] Generando reporte final...")
-    banco.generar_reporte_general()
-
-    # ========== RESUMEN DE ESTRUCTURAS UTILIZADAS ==========
-    print("\n" + "=" * 70)
-    print("RESUMEN DE ESTRUCTURAS DE DATOS APLICADAS")
-    print("=" * 70)
-
-    estructuras = [
-        ("Lista Enlazada", "Registro de clientes", "Inserción O(1), Búsqueda O(n)"),
-        ("Árbol Binario BST", "Índice de cuentas", "Búsqueda O(log n)"),
-        ("Cola FIFO", "Transacciones pendientes", "Procesar en orden de llegada"),
-        ("Pila LIFO", "Historial deshacer/rehacer", "Último en entrar, primero en salir"),
-        ("Array Dinámico", "Log de actividades", "Redimensionamiento automático"),
-        ("POO - Herencia", "CuentaAhorro, CuentaCorriente", "Reutilización de código"),
-        ("POO - Polimorfismo", "Métodos sobrescritos", "Comportamiento específico"),
-    ]
-
-    for nombre, uso, caracteristica in estructuras:
-        print(f"\n✓ {nombre}")
-        print(f"  Uso: {uso}")
-        print(f"  Característica: {caracteristica}")
-
-    print("\n" + "=" * 70)
-    print("PROYECTO COMPLETADO EXITOSAMENTE")
-    print("Todas las estructuras de datos han sido implementadas y demostradas")
-    print("=" * 70 + "\n")
+    def test_cola_vacia_desencolar(self):
+        cola = Cola()
+        with pytest.raises(IndexError):
+            cola.desencolar()
 
 
+# ========== TESTS PARA PILA (LIFO) ==========
+class TestPila:
+    """Tests para estructura Pila LIFO"""
+
+    def test_crear_pila_vacia(self):
+        pila = Pila()
+        assert pila.esta_vacia()
+        assert len(pila) == 0
+
+    def test_apilar_elementos(self):
+        pila = Pila()
+        pila.apilar(1)
+        pila.apilar(2)
+        pila.apilar(3)
+        assert len(pila) == 3
+        assert not pila.esta_vacia()
+
+    def test_desapilar_lifo(self):
+        pila = Pila()
+        pila.apilar("primero")
+        pila.apilar("segundo")
+        pila.apilar("tercero")
+
+        ultimo = pila.desapilar()
+        penultimo = pila.desapilar()
+
+        assert ultimo == "tercero"
+        assert penultimo == "segundo"
+        assert len(pila) == 1
+
+    def test_ver_tope_sin_remover(self):
+        pila = Pila()
+        pila.apilar(10)
+        pila.apilar(20)
+        pila.apilar(30)
+
+        tope = pila.cima()
+        assert tope == 30
+        assert len(pila) == 3
+
+    def test_pila_vacia_desapilar(self):
+        pila = Pila()
+        with pytest.raises(IndexError):
+            pila.desapilar()
+
+
+# ========== TESTS PARA LISTA ENLAZADA ==========
+class TestListaEnlazada:
+    """Tests para Lista Enlazada"""
+
+    def test_crear_lista_vacia(self):
+        lista = ListaEnlazada()
+        assert len(lista) == 0
+
+    def test_agregar_elementos(self):
+        lista = ListaEnlazada()
+        lista.agregar("elemento1")
+        lista.agregar("elemento2")
+        lista.agregar("elemento3")
+        assert len(lista) == 3
+
+    def test_buscar_elemento(self):
+        lista = ListaEnlazada()
+        lista.agregar("cliente1")
+        lista.agregar("cliente2")
+        lista.agregar("cliente3")
+
+        encontrado = lista.buscar(lambda x: x == "cliente2")
+        no_encontrado = lista.buscar(lambda x: x == "inexistente")
+
+        assert encontrado == "cliente2"
+        assert no_encontrado is None
+
+    def test_recorrer_elementos(self):
+        lista = ListaEnlazada()
+        lista.agregar(1)
+        lista.agregar(2)
+        lista.agregar(3)
+        elementos = lista.recorrer()
+        assert elementos == [1, 2, 3]
+
+
+# ========== TESTS PARA ÁRBOL BINARIO ==========
+class TestArbolBinario:
+    """Tests para Árbol Binario de Búsqueda"""
+
+    def test_crear_arbol_vacio(self):
+        arbol = ArbolBinarioBusqueda()
+        assert arbol.raiz is None
+
+    def test_insertar_elementos(self):
+        arbol = ArbolBinarioBusqueda()
+        arbol.insertar(50, "valor50")
+        arbol.insertar(30, "valor30")
+        arbol.insertar(70, "valor70")
+
+        assert arbol.buscar(50) == "valor50"
+        assert arbol.buscar(30) == "valor30"
+        assert arbol.buscar(70) == "valor70"
+
+    def test_buscar_elemento(self):
+        arbol = ArbolBinarioBusqueda()
+        arbol.insertar(50, "valor50")
+        arbol.insertar(30, "valor30")
+        arbol.insertar(70, "valor70")
+        assert arbol.buscar(30) == "valor30"
+
+    def test_buscar_elemento_inexistente(self):
+        arbol = ArbolBinarioBusqueda()
+        arbol.insertar(50, "valor50")
+        assert arbol.buscar(99) is None
+
+    def test_recorrido_inorden(self):
+        arbol = ArbolBinarioBusqueda()
+        arbol.insertar(50, "50")
+        arbol.insertar(30, "30")
+        arbol.insertar(70, "70")
+        arbol.insertar(20, "20")
+        arbol.insertar(40, "40")
+        assert arbol.inorden() == ["20", "30", "40", "50", "70"]
+
+
+# ========== TESTS PARA CLIENTE ==========
+class TestCliente:
+    """Tests para clase Cliente"""
+
+    def test_crear_cliente(self):
+        cliente = Cliente("1", "Juan Pérez", "1234567890", [], "2024-01-01", "juan@email.com", "0999999999")
+        assert cliente.id == "1"
+        assert cliente.nombre == "Juan Pérez"
+        assert cliente.email == "juan@email.com"
+        assert isinstance(cliente.cuentas, list)
+
+    def test_agregar_cuenta(self):
+        cliente = Cliente("1", "Test", "0000000000", [], "2024-01-01", "test@email.com", "0999999999")
+        cuenta_mock = object()
+        cliente.agregar_cuenta(cuenta_mock)
+        assert cuenta_mock in cliente.cuentas
+
+    def test_get_saldo_total(self):
+        cliente = Cliente("1", "Test", "0000000000", [], "2024-01-01", "test@email.com", "0999999999")
+        cuenta1 = type("MockCuenta", (), {"saldo": 1000})()
+        cuenta2 = type("MockCuenta", (), {"saldo": 500})()
+        cliente.cuentas.extend([cuenta1, cuenta2])
+        assert cliente.get_saldo_total() == 1500
+
+
+# ========== TESTS PARA SISTEMA BANCARIO ==========
+class TestSistemaBancario:
+    """Tests de integración del Sistema Bancario"""
+
+    def test_crear_sistema_bancario(self):
+        sistema = SistemaBancario()
+        assert isinstance(sistema, SistemaBancario)
+        assert sistema.clientes == []
+
+    def test_agregar_cliente(self):
+        sistema = SistemaBancario()
+        cliente = sistema.agregar_cliente("Ana", "123", "2024-01-01", "ana@email.com", "0999999999")
+        assert cliente.nombre == "Ana"
+        assert len(sistema.clientes) == 1
+
+    def test_crear_cuenta_y_buscar(self):
+        sistema = SistemaBancario()
+        cliente = sistema.agregar_cliente("Carlos", "456", "2024-01-01", "carlos@email.com", "0998888888")
+        cuenta = sistema.crear_cuenta_ahorro(cliente, 1000.0)
+        assert sistema.buscar_cuenta(cuenta.numero) == cuenta
+
+
+# ========== MAIN ==========
 if __name__ == "__main__":
-    """Punto de entrada del programa"""
-    try:
-        main()
-    except Exception as e:
-        print(f"\nError: {e}")
-        import traceback
-        traceback.print_exc()
+    pytest.main(["-v"])
