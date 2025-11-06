@@ -1,167 +1,147 @@
 """
-PROGRAMACIÓN ORIENTADA A OBJETOS - HERENCIA
-Clase base Cuenta (Clase padre)
+HERENCIA Y POLIMORFISMO
+CuentaAhorro - Clase hija que hereda de Cuenta
 """
 
 from datetime import datetime
-from abc import ABC, abstractmethod
 
-class Cuenta(ABC):
-    "Clase abstracta base para cuentas bancarias Define la interfaz común para todos los tipos de cuenta."
+# Importar la clase padre (en tu proyecto real sería: from modelos.cuenta import Cuenta)
+# from cuenta import Cuenta
+
+class CuentaAhorro:  # En el código real: class CuentaAhorro(Cuenta):
+    """
+    Cuenta de Ahorro con tasa de interés.
     
-    "Esta es la CLASE PADRE en la jerarquía de herencia."
+    HERENCIA: Esta clase HEREDA de Cuenta (clase padre)
+    Extiende funcionalidad con: tasa de interés y límite de retiros mensuales
     
-    # Contador de cuentas (variable de clase compartida)
-    contador_cuentas = 1000
+    POLIMORFISMO: Sobrescribe métodos de la clase padre
+    """
     
-    def __init__(self, cliente, saldo_inicial=0.0):
+    def __init__(self, cliente, saldo_inicial=0.0, tasa_interes=0.02, limite_retiros=5):
         """
-        Inicializa una cuenta bancaria
+        Inicializa una cuenta de ahorro
         
         Args:
-            cliente (Cliente): Cliente propietario de la cuenta
-            saldo_inicial (float): Saldo inicial de la cuenta
+            cliente (Cliente): Cliente propietario
+            saldo_inicial (float): Saldo inicial
+            tasa_interes (float): Tasa de interés anual (default 2%)
+            limite_retiros (int): Límite de retiros mensuales
         """
-        Cuenta.contador_cuentas += 1
-        self.numero_cuenta = Cuenta.contador_cuentas
-        self.cliente = cliente
-        self.saldo = saldo_inicial
-        self.fecha_apertura = datetime.now()
-        self.activa = True
-        self.historial_transacciones = []
-    
-    def depositar(self, monto, descripcion="Depósito"):
-        """Deposita dinero en la cuenta
+        # super().__init__(cliente, saldo_inicial)  # Llama al constructor padre
         
-        Args:
-            monto (float): Cantidad a depositar
-            descripcion (str): Descripción de la transacción
-            
+        # Atributos específicos de CuentaAhorro
+        self.tasa_interes = tasa_interes
+        self.limite_retiros_mensual = limite_retiros
+        self.retiros_realizados = 0
+        self.mes_actual = datetime.now().month
+    
+    def calcular_interes(self):
+        """
+        Calcula y aplica el interés al saldo
+        Método específico de CuentaAhorro (no existe en clase padre)
+        
         Returns:
-            bool: True si la operación fue exitosa
+            float: Monto del interés generado
         """
-        if monto <= 0:
-            raise ValueError("El monto debe ser mayor a 0")
-        
-        if not self.activa:
-            raise Exception("La cuenta está inactiva")
-        
-        self.saldo += monto
-        self._registrar_transaccion("DEPOSITO", monto, descripcion)
-        return True
+        interes = self.saldo * self.tasa_interes
+        self.depositar(interes, f"Interés generado ({self.tasa_interes*100}%)")
+        return interes
     
     def retirar(self, monto, descripcion="Retiro"):
         """
-        Retira dinero de la cuenta
+        POLIMORFISMO: Sobrescribe el método retirar() de la clase padre
+        Agrega validación de límite de retiros mensuales
         
         Args:
             monto (float): Cantidad a retirar
-            descripcion (str): Descripción de la transacción
+            descripcion (str): Descripción
             
         Returns:
-            bool: True si la operación fue exitosa
+            bool: True si fue exitoso
         """
-        if monto <= 0:
-            raise ValueError("El monto debe ser mayor a 0")
+        # Verificar si cambió el mes (resetear contador)
+        if datetime.now().month != self.mes_actual:
+            self.retiros_realizados = 0
+            self.mes_actual = datetime.now().month
         
-        if not self.activa:
-            raise Exception("La cuenta está inactiva")
+        # Validar límite de retiros
+        if self.retiros_realizados >= self.limite_retiros_mensual:
+            raise Exception(f"Ha alcanzado el límite de {self.limite_retiros_mensual} retiros mensuales")
         
-        if self.saldo < monto:
-            raise ValueError("Saldo insuficiente")
+        # Llamar al método de la clase padre
+        # resultado = super().retirar(monto, descripcion)
+        # self.retiros_realizados += 1
+        # return resultado
         
-        self.saldo -= monto
-        self._registrar_transaccion("RETIRO", monto, descripcion)
-        return True
-    
-    def _registrar_transaccion(self, tipo, monto, descripcion):
-        """
-        Registra una transacción en el historial (método privado)
-        
-        Args:
-            tipo (str): Tipo de transacción (DEPOSITO, RETIRO, etc.)
-            monto (float): Monto de la transacción
-            descripcion (str): Descripción de la transacción
-        """
-        transaccion = {
-            'tipo': tipo,
-            'monto': monto,
-            'descripcion': descripcion,
-            'fecha': datetime.now(),
-            'saldo_resultante': self.saldo
-        }
-        self.historial_transacciones.append(transaccion)
-    
-    def consultar_saldo(self):
-        """Retorna el saldo actual de la cuenta"""
-        return self.saldo
-    
-    def obtener_historial(self, ultimas_n=None):
-        """
-        Obtiene el historial de transacciones
-        
-        Args:
-            ultimas_n (int): Número de transacciones recientes a mostrar
-            
-        Returns:
-            list: Lista de transacciones
-        """
-        if ultimas_n:
-            return self.historial_transacciones[-ultimas_n:]
-        return self.historial_transacciones.copy()
-    
-    def desactivar(self):
-        """Desactiva la cuenta"""
-        self.activa = False
-        return True
-    
-    def activar(self):
-        """Activa la cuenta"""
-        self.activa = True
-        return True
-    
-    @abstractmethod
-    def obtener_tipo_cuenta(self):
-        """
-        Método abstracto: debe ser implementado por las clases hijas
-        Retorna el tipo de cuenta
-        """
-        pass
-    
-    @abstractmethod
-    def calcular_mantenimiento(self):
-        """
-        Método abstracto: debe ser implementado por las clases hijas
-        Calcula el costo de mantenimiento de la cuenta
-        """
-        pass
-    
-    def obtener_info(self):
-        """Retorna información resumida de la cuenta"""
-        return {
-            'numero_cuenta': self.numero_cuenta,
-            'tipo': self.obtener_tipo_cuenta(),
-            'cliente': self.cliente.obtener_nombre_completo(),
-            'saldo': self.saldo,
-            'fecha_apertura': self.fecha_apertura.strftime("%Y-%m-%d"),
-            'activa': self.activa,
-            'total_transacciones': len(self.historial_transacciones)
-        }
-    
-    def __str__(self):
-        """Representación en string de la cuenta"""
-        return f"Cuenta {self.numero_cuenta} ({self.obtener_tipo_cuenta()}) - Saldo: ${self.saldo:.2f}"
-    
-    def __repr__(self):
-        """Representación técnica de la cuenta"""
-        return f"Cuenta(numero={self.numero_cuenta}, tipo='{self.obtener_tipo_cuenta()}', saldo={self.saldo})"
-    
-    def __eq__(self, otra):
-        """Comparación de igualdad entre cuentas"""
-        if isinstance(otra, Cuenta):
-            return self.numero_cuenta == otra.numero_cuenta
+        # Simulación para el ejemplo:
+        if monto > 0 and self.saldo >= monto:
+            self.saldo -= monto
+            self.retiros_realizados += 1
+            return True
         return False
     
-    def __hash__(self):
-        """Hash de la cuenta basado en número de cuenta"""
-        return hash(self.numero_cuenta)
+    def obtener_tipo_cuenta(self):
+        """
+        Implementa el método abstracto de la clase padre
+        
+        Returns:
+            str: Tipo de cuenta
+        """
+        return "AHORRO"
+    
+    def calcular_mantenimiento(self):
+        """
+        Implementa el método abstracto de la clase padre
+        Cuenta de ahorro no tiene costo de mantenimiento
+        
+        Returns:
+            float: Costo de mantenimiento
+        """
+        return 0.0
+    
+    def obtener_retiros_disponibles(self):
+        """
+        Calcula cuántos retiros quedan disponibles este mes
+        
+        Returns:
+            int: Número de retiros disponibles
+        """
+        return self.limite_retiros_mensual - self.retiros_realizados
+    
+    def cambiar_tasa_interes(self, nueva_tasa):
+        """
+        Actualiza la tasa de interés
+        
+        Args:
+            nueva_tasa (float): Nueva tasa de interés
+        """
+        if 0 <= nueva_tasa <= 1:
+            self.tasa_interes = nueva_tasa
+            return True
+        raise ValueError("La tasa debe estar entre 0 y 1")
+    
+    def obtener_info(self):
+        """
+        Sobrescribe método de la clase padre para incluir info adicional
+        
+        Returns:
+            dict: Información completa de la cuenta
+        """
+        # info = super().obtener_info()  # Obtener info de la clase padre
+        info = {
+            'numero_cuenta': self.numero_cuenta,
+            'tipo': self.obtener_tipo_cuenta(),
+            'saldo': self.saldo
+        }
+        
+        # Agregar información específica de CuentaAhorro
+        info['tasa_interes'] = f"{self.tasa_interes*100}%"
+        info['retiros_disponibles'] = self.obtener_retiros_disponibles()
+        info['limite_retiros_mensual'] = self.limite_retiros_mensual
+        
+        return info
+    
+    def __str__(self):
+        """Representación personalizada en string"""
+        return f"Cuenta Ahorro {self.numero_cuenta} - Saldo: ${self.saldo:.2f} (Interés: {self.tasa_interes*100}%)"
