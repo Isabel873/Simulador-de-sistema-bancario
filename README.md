@@ -1,141 +1,167 @@
 """
-Clase Cliente - Modelo de datos principal
+PROGRAMACIÓN ORIENTADA A OBJETOS - HERENCIA
+Clase base Cuenta (Clase padre)
 """
 
 from datetime import datetime
+from abc import ABC, abstractmethod
 
-class Cliente:
-    """
-    Representa un cliente del banco.
+class Cuenta(ABC):
+    "Clase abstracta base para cuentas bancarias Define la interfaz común para todos los tipos de cuenta."
     
-    Atributos:
-        id_cliente (int): Identificador único del cliente
-        nombre (str): Nombre del cliente
-        apellido (str): Apellido del cliente
-        dni (str): Documento de identidad
-        email (str): Correo electrónico
-        telefono (str): Número de teléfono
-        direccion (str): Dirección del cliente
-        fecha_registro (datetime): Fecha de registro en el banco
-        cuentas (list): Lista de cuentas del cliente
-        activo (bool): Estado del cliente
-    """
+    "Esta es la CLASE PADRE en la jerarquía de herencia."
     
-    # Contador de clientes (variable de clase)
-    contador_clientes = 0
+    # Contador de cuentas (variable de clase compartida)
+    contador_cuentas = 1000
     
-    def __init__(self, nombre, apellido, dni, email, telefono="", direccion=""):
+    def __init__(self, cliente, saldo_inicial=0.0):
         """
-        Inicializa un nuevo cliente
+        Inicializa una cuenta bancaria
         
         Args:
-            nombre (str): Nombre del cliente
-            apellido (str): Apellido del cliente
-            dni (str): Documento de identidad
-            email (str): Correo electrónico
-            telefono (str): Número de teléfono (opcional)
-            direccion (str): Dirección (opcional)
+            cliente (Cliente): Cliente propietario de la cuenta
+            saldo_inicial (float): Saldo inicial de la cuenta
         """
-        Cliente.contador_clientes += 1
-        self.id_cliente = Cliente.contador_clientes
-        self.nombre = nombre
-        self.apellido = apellido
-        self.dni = dni
-        self.email = email
-        self.telefono = telefono
-        self.direccion = direccion
-        self.fecha_registro = datetime.now()
-        self.cuentas = []  # Lista de cuentas asociadas
-        self.activo = True
+        Cuenta.contador_cuentas += 1
+        self.numero_cuenta = Cuenta.contador_cuentas
+        self.cliente = cliente
+        self.saldo = saldo_inicial
+        self.fecha_apertura = datetime.now()
+        self.activa = True
+        self.historial_transacciones = []
     
-    def agregar_cuenta(self, cuenta):
-        """
-        Asocia una cuenta bancaria al cliente
+    def depositar(self, monto, descripcion="Depósito"):
+        """Deposita dinero en la cuenta
         
         Args:
-            cuenta (Cuenta): Objeto de tipo Cuenta
-        """
-        if cuenta not in self.cuentas:
-            self.cuentas.append(cuenta)
-            return True
-        return False
-    
-    def obtener_nombre_completo(self):
-        """Retorna el nombre completo del cliente"""
-        return f"{self.nombre} {self.apellido}"
-    
-    def obtener_total_cuentas(self):
-        """Retorna el número de cuentas del cliente"""
-        return len(self.cuentas)
-    
-    def obtener_saldo_total(self):
-        """
-        Calcula el saldo total sumando todas las cuentas
-        
+            monto (float): Cantidad a depositar
+            descripcion (str): Descripción de la transacción
+            
         Returns:
-            float: Saldo total de todas las cuentas
+            bool: True si la operación fue exitosa
         """
-        return sum(cuenta.saldo for cuenta in self.cuentas)
+        if monto <= 0:
+            raise ValueError("El monto debe ser mayor a 0")
+        
+        if not self.activa:
+            raise Exception("La cuenta está inactiva")
+        
+        self.saldo += monto
+        self._registrar_transaccion("DEPOSITO", monto, descripcion)
+        return True
+    
+    def retirar(self, monto, descripcion="Retiro"):
+        """
+        Retira dinero de la cuenta
+        
+        Args:
+            monto (float): Cantidad a retirar
+            descripcion (str): Descripción de la transacción
+            
+        Returns:
+            bool: True si la operación fue exitosa
+        """
+        if monto <= 0:
+            raise ValueError("El monto debe ser mayor a 0")
+        
+        if not self.activa:
+            raise Exception("La cuenta está inactiva")
+        
+        if self.saldo < monto:
+            raise ValueError("Saldo insuficiente")
+        
+        self.saldo -= monto
+        self._registrar_transaccion("RETIRO", monto, descripcion)
+        return True
+    
+    def _registrar_transaccion(self, tipo, monto, descripcion):
+        """
+        Registra una transacción en el historial (método privado)
+        
+        Args:
+            tipo (str): Tipo de transacción (DEPOSITO, RETIRO, etc.)
+            monto (float): Monto de la transacción
+            descripcion (str): Descripción de la transacción
+        """
+        transaccion = {
+            'tipo': tipo,
+            'monto': monto,
+            'descripcion': descripcion,
+            'fecha': datetime.now(),
+            'saldo_resultante': self.saldo
+        }
+        self.historial_transacciones.append(transaccion)
+    
+    def consultar_saldo(self):
+        """Retorna el saldo actual de la cuenta"""
+        return self.saldo
+    
+    def obtener_historial(self, ultimas_n=None):
+        """
+        Obtiene el historial de transacciones
+        
+        Args:
+            ultimas_n (int): Número de transacciones recientes a mostrar
+            
+        Returns:
+            list: Lista de transacciones
+        """
+        if ultimas_n:
+            return self.historial_transacciones[-ultimas_n:]
+        return self.historial_transacciones.copy()
     
     def desactivar(self):
-        """Desactiva el cliente en el sistema"""
-        self.activo = False
+        """Desactiva la cuenta"""
+        self.activa = False
         return True
     
     def activar(self):
-        """Activa el cliente en el sistema"""
-        self.activo = True
+        """Activa la cuenta"""
+        self.activa = True
         return True
     
-    def actualizar_email(self, nuevo_email):
-        """Actualiza el correo electrónico del cliente"""
-        self.email = nuevo_email
-        return True
+    @abstractmethod
+    def obtener_tipo_cuenta(self):
+        """
+        Método abstracto: debe ser implementado por las clases hijas
+        Retorna el tipo de cuenta
+        """
+        pass
     
-    def actualizar_telefono(self, nuevo_telefono):
-        """Actualiza el teléfono del cliente"""
-        self.telefono = nuevo_telefono
-        return True
-    
-    def actualizar_direccion(self, nueva_direccion):
-        """Actualiza la dirección del cliente"""
-        self.direccion = nueva_direccion
-        return True
+    @abstractmethod
+    def calcular_mantenimiento(self):
+        """
+        Método abstracto: debe ser implementado por las clases hijas
+        Calcula el costo de mantenimiento de la cuenta
+        """
+        pass
     
     def obtener_info(self):
-        """
-        Retorna un diccionario con la información del cliente
-        
-        Returns:
-            dict: Información completa del cliente
-        """
+        """Retorna información resumida de la cuenta"""
         return {
-            'id': self.id_cliente,
-            'nombre_completo': self.obtener_nombre_completo(),
-            'dni': self.dni,
-            'email': self.email,
-            'telefono': self.telefono,
-            'direccion': self.direccion,
-            'fecha_registro': self.fecha_registro.strftime("%Y-%m-%d"),
-            'total_cuentas': self.obtener_total_cuentas(),
-            'saldo_total': self.obtener_saldo_total(),
-            'activo': self.activo
+            'numero_cuenta': self.numero_cuenta,
+            'tipo': self.obtener_tipo_cuenta(),
+            'cliente': self.cliente.obtener_nombre_completo(),
+            'saldo': self.saldo,
+            'fecha_apertura': self.fecha_apertura.strftime("%Y-%m-%d"),
+            'activa': self.activa,
+            'total_transacciones': len(self.historial_transacciones)
         }
     
     def __str__(self):
-        """Representación en string del cliente"""
-        return f"Cliente #{self.id_cliente}: {self.obtener_nombre_completo()} (DNI: {self.dni})"
+        """Representación en string de la cuenta"""
+        return f"Cuenta {self.numero_cuenta} ({self.obtener_tipo_cuenta()}) - Saldo: ${self.saldo:.2f}"
     
     def __repr__(self):
-        """Representación técnica del cliente"""
-        return f"Cliente(id={self.id_cliente}, nombre='{self.nombre}', apellido='{self.apellido}', dni='{self.dni}')"
+        """Representación técnica de la cuenta"""
+        return f"Cuenta(numero={self.numero_cuenta}, tipo='{self.obtener_tipo_cuenta()}', saldo={self.saldo})"
     
-    def __eq__(self, otro):
-        """Comparación de igualdad entre clientes (por DNI)"""
-        if isinstance(otro, Cliente):
-            return self.dni == otro.dni
+    def __eq__(self, otra):
+        """Comparación de igualdad entre cuentas"""
+        if isinstance(otra, Cuenta):
+            return self.numero_cuenta == otra.numero_cuenta
         return False
     
     def __hash__(self):
-        """Hash del cliente basado en DNI"""
-        return hash(self.dni)
+        """Hash de la cuenta basado en número de cuenta"""
+        return hash(self.numero_cuenta)
