@@ -1,215 +1,297 @@
 """
-APLICACIÓN DE LISTA ENLAZADA
-Sistema de registro y gestión de clientes
+CLASE PRINCIPAL - BANCO
+Integra todas las estructuras de datos y modelos
 """
 
-# from estructuras.lista import ListaEnlazada
+from datetime import datetime
 
-class RegistroClientes:
+# Importaciones (en proyecto real desde módulos correspondientes)
+# from modelos.cliente import Cliente
+# from modelos.cuenta_ahorro import CuentaAhorro
+# from modelos.cuenta_corriente import CuentaCorriente
+# from servicios.registro_clientes import RegistroClientes
+# from servicios.sistema_transacciones import SistemaTransacciones, Transaccion
+# from servicios.historial_operaciones import HistorialOperaciones, Operacion
+# from estructuras.arbol_binario import ArbolBinarioBusqueda
+# from estructuras.array_dinamico import ArrayDinamico
+
+
+class Banco:
     """
-    Gestiona el registro de clientes usando Lista Enlazada
+    Clase principal que coordina todo el sistema bancario
     
-    APLICACIÓN DE LISTA:
-    - Almacena clientes en orden de registro
-    - Permite búsqueda por diferentes criterios
-    - Mantiene orden de inserción
+    INTEGRA TODAS LAS ESTRUCTURAS:
+    - Lista Enlazada: Registro de clientes
+    - Árbol Binario: Índice de cuentas
+    - Cola FIFO: Transacciones pendientes
+    - Pila LIFO: Historial de operaciones
+    - Array Dinámico: Log de actividades
     """
     
-    def __init__(self):
-        """Inicializa el registro con una lista vacía"""
-        # self.clientes = ListaEnlazada()
-        self.clientes = []  # Simulación de lista enlazada
-    
-    def registrar_cliente(self, cliente):
+    def __init__(self, nombre_banco):
         """
-        Registra un nuevo cliente en el sistema
+        Inicializa el sistema bancario completo
         
         Args:
-            cliente (Cliente): Cliente a registrar
-            
-        Returns:
-            bool: True si fue exitoso
+            nombre_banco (str): Nombre del banco
         """
-        # Verificar que no exista un cliente con el mismo DNI
-        if self.buscar_por_dni(cliente.dni):
-            raise ValueError(f"Ya existe un cliente con DNI {cliente.dni}")
+        self.nombre = nombre_banco
+        self.fecha_fundacion = datetime.now()
         
-        # self.clientes.agregar(cliente)
-        self.clientes.append(cliente)
+        # Inicializar componentes (usando estructuras de datos)
+        # self.registro_clientes = RegistroClientes()  # Lista Enlazada
+        # self.indice_cuentas = ArbolBinarioBusqueda()  # BST
+        # self.sistema_transacciones = SistemaTransacciones()  # Cola FIFO
+        # self.historial = HistorialOperaciones()  # Pila LIFO
+        # self.log_actividades = ArrayDinamico(50)  # Array Dinámico
         
-        print(f"✓ Cliente registrado: {cliente}")
-        return True
+        # Simulación para el ejemplo
+        self.registro_clientes = []
+        self.indice_cuentas = {}
+        self.sistema_transacciones = []
+        self.historial = []
+        self.log_actividades = []
+        
+        self._log(f"Banco '{nombre_banco}' inicializado")
     
-    def buscar_por_dni(self, dni):
+    def _log(self, mensaje):
         """
-        Busca un cliente por DNI
+        Registra una actividad en el log (Array Dinámico)
         
         Args:
-            dni (str): DNI del cliente
+            mensaje (str): Mensaje a registrar
+        """
+        entrada = {
+            'timestamp': datetime.now(),
+            'mensaje': mensaje
+        }
+        # self.log_actividades.agregar(entrada)
+        self.log_actividades.append(entrada)
+    
+    # ========== GESTIÓN DE CLIENTES ==========
+    
+    def registrar_cliente(self, nombre, apellido, dni, email, telefono="", direccion=""):
+        """
+        Registra un nuevo cliente en el banco
+        
+        Args:
+            nombre, apellido, dni, email, telefono, direccion
             
         Returns:
-            Cliente: Cliente encontrado o None
+            Cliente: Cliente registrado
         """
-        # return self.clientes.buscar(lambda c: c.dni == dni)
-        for cliente in self.clientes:
-            if cliente.dni == dni:
+        # cliente = Cliente(nombre, apellido, dni, email, telefono, direccion)
+        # self.registro_clientes.registrar_cliente(cliente)
+        
+        cliente = {
+            'id': len(self.registro_clientes) + 1,
+            'nombre': nombre,
+            'apellido': apellido,
+            'dni': dni,
+            'email': email,
+            'cuentas': []
+        }
+        self.registro_clientes.append(cliente)
+        
+        self._log(f"Cliente registrado: {nombre} {apellido} (DNI: {dni})")
+        return cliente
+    
+    def buscar_cliente(self, dni):
+        """Busca un cliente por DNI"""
+        # return self.registro_clientes.buscar_por_dni(dni)
+        for cliente in self.registro_clientes:
+            if cliente['dni'] == dni:
                 return cliente
         return None
     
-    def buscar_por_id(self, id_cliente):
-        """
-        Busca un cliente por ID
-        
-        Args:
-            id_cliente (int): ID del cliente
-            
-        Returns:
-            Cliente: Cliente encontrado o None
-        """
-        # return self.clientes.buscar(lambda c: c.id_cliente == id_cliente)
-        for cliente in self.clientes:
-            if cliente.id_cliente == id_cliente:
-                return cliente
-        return None
+    # ========== GESTIÓN DE CUENTAS ==========
     
-    def buscar_por_nombre(self, nombre):
+    def crear_cuenta_ahorro(self, dni_cliente, saldo_inicial=0, tasa_interes=0.02):
         """
-        Busca clientes por nombre (coincidencia parcial)
+        Crea una cuenta de ahorro para un cliente
         
         Args:
-            nombre (str): Nombre a buscar
+            dni_cliente (str): DNI del cliente
+            saldo_inicial (float): Saldo inicial
+            tasa_interes (float): Tasa de interés anual
             
         Returns:
-            list: Lista de clientes encontrados
+            CuentaAhorro: Cuenta creada
         """
-        nombre_lower = nombre.lower()
-        # clientes_lista = self.clientes.listar_todos()
-        
-        return [
-            c for c in self.clientes
-            if nombre_lower in c.nombre.lower() or nombre_lower in c.apellido.lower()
-        ]
-    
-    def buscar_por_email(self, email):
-        """
-        Busca un cliente por email
-        
-        Args:
-            email (str): Email del cliente
-            
-        Returns:
-            Cliente: Cliente encontrado o None
-        """
-        # return self.clientes.buscar(lambda c: c.email == email)
-        for cliente in self.clientes:
-            if cliente.email == email:
-                return cliente
-        return None
-    
-    def eliminar_cliente(self, dni):
-        """
-        Elimina un cliente del registro
-        
-        Args:
-            dni (str): DNI del cliente a eliminar
-            
-        Returns:
-            bool: True si fue exitoso
-        """
-        cliente = self.buscar_por_dni(dni)
+        cliente = self.buscar_cliente(dni_cliente)
         
         if not cliente:
-            raise ValueError(f"No se encontró cliente con DNI {dni}")
+            raise ValueError(f"No se encontró cliente con DNI {dni_cliente}")
         
-        # Verificar que no tenga cuentas activas
-        if cliente.obtener_total_cuentas() > 0:
-            raise Exception("No se puede eliminar un cliente con cuentas activas")
+        # cuenta = CuentaAhorro(cliente, saldo_inicial, tasa_interes)
+        # cliente.agregar_cuenta(cuenta)
+        # self.indice_cuentas.insertar(cuenta.numero_cuenta, cuenta)
         
-        # return self.clientes.eliminar(lambda c: c.dni == dni)
-        self.clientes.remove(cliente)
-        print(f"✓ Cliente eliminado: {cliente}")
+        numero_cuenta = len(self.indice_cuentas) + 1001
+        cuenta = {
+            'numero': numero_cuenta,
+            'tipo': 'AHORRO',
+            'cliente': cliente,
+            'saldo': saldo_inicial,
+            'tasa_interes': tasa_interes
+        }
+        self.indice_cuentas[numero_cuenta] = cuenta
+        cliente['cuentas'].append(cuenta)
+        
+        self._log(f"Cuenta Ahorro #{numero_cuenta} creada para {cliente['nombre']} {cliente['apellido']}")
+        return cuenta
+    
+    def crear_cuenta_corriente(self, dni_cliente, saldo_inicial=0, limite_sobregiro=1000):
+        """
+        Crea una cuenta corriente para un cliente
+        
+        Args:
+            dni_cliente (str): DNI del cliente
+            saldo_inicial (float): Saldo inicial
+            limite_sobregiro (float): Límite de sobregiro
+            
+        Returns:
+            CuentaCorriente: Cuenta creada
+        """
+        cliente = self.buscar_cliente(dni_cliente)
+        
+        if not cliente:
+            raise ValueError(f"No se encontró cliente con DNI {dni_cliente}")
+        
+        numero_cuenta = len(self.indice_cuentas) + 1001
+        cuenta = {
+            'numero': numero_cuenta,
+            'tipo': 'CORRIENTE',
+            'cliente': cliente,
+            'saldo': saldo_inicial,
+            'limite_sobregiro': limite_sobregiro
+        }
+        self.indice_cuentas[numero_cuenta] = cuenta
+        cliente['cuentas'].append(cuenta)
+        
+        self._log(f"Cuenta Corriente #{numero_cuenta} creada para {cliente['nombre']} {cliente['apellido']}")
+        return cuenta
+    
+    def buscar_cuenta(self, numero_cuenta):
+        """
+        Busca una cuenta por número usando Árbol Binario (O(log n))
+        
+        Args:
+            numero_cuenta (int): Número de cuenta
+            
+        Returns:
+            Cuenta: Cuenta encontrada o None
+        """
+        # return self.indice_cuentas.buscar(numero_cuenta)
+        return self.indice_cuentas.get(numero_cuenta)
+    
+    # ========== OPERACIONES BANCARIAS ==========
+    
+    def depositar(self, numero_cuenta, monto):
+        """
+        Realiza un depósito en una cuenta
+        
+        Args:
+            numero_cuenta (int): Número de cuenta
+            monto (float): Monto a depositar
+            
+        Returns:
+            bool: True si fue exitoso
+        """
+        cuenta = self.buscar_cuenta(numero_cuenta)
+        
+        if not cuenta:
+            raise ValueError(f"Cuenta {numero_cuenta} no encontrada")
+        
+        # Guardar estado para historial
+        saldo_anterior = cuenta['saldo']
+        
+        # Realizar depósito
+        cuenta['saldo'] += monto
+        
+        # Registrar en historial (Pila LIFO)
+        # operacion = Operacion("DEPOSITO", cuenta, saldo_anterior, cuenta.saldo)
+        # self.historial.registrar_operacion(operacion)
+        
+        # Agregar a cola de transacciones
+        # transaccion = Transaccion("DEPOSITO", monto, cuenta)
+        # self.sistema_transacciones.agregar_transaccion(transaccion)
+        
+        self._log(f"Depósito ${monto:.2f} en cuenta #{numero_cuenta}")
         return True
     
-    def listar_todos(self):
+    def retirar(self, numero_cuenta, monto):
         """
-        Lista todos los clientes registrados
+        Realiza un retiro de una cuenta
         
+        Args:
+            numero_cuenta (int): Número de cuenta
+            monto (float): Monto a retirar
+            
         Returns:
-            list: Lista de todos los clientes
+            bool: True si fue exitoso
         """
-        # return self.clientes.listar_todos()
-        return self.clientes.copy()
-    
-    def listar_activos(self):
-        """
-        Lista solo clientes activos
+        cuenta = self.buscar_cuenta(numero_cuenta)
         
+        if not cuenta:
+            raise ValueError(f"Cuenta {numero_cuenta} no encontrada")
+        
+        if cuenta['saldo'] < monto:
+            raise ValueError("Saldo insuficiente")
+        
+        saldo_anterior = cuenta['saldo']
+        cuenta['saldo'] -= monto
+        
+        self._log(f"Retiro ${monto:.2f} de cuenta #{numero_cuenta}")
+        return True
+    
+    def transferir(self, numero_cuenta_origen, numero_cuenta_destino, monto):
+        """
+        Realiza una transferencia entre cuentas
+        
+        Args:
+            numero_cuenta_origen (int): Cuenta origen
+            numero_cuenta_destino (int): Cuenta destino
+            monto (float): Monto a transferir
+            
         Returns:
-            list: Lista de clientes activos
+            bool: True si fue exitoso
         """
-        # clientes_lista = self.clientes.listar_todos()
-        return [c for c in self.clientes if c.activo]
+        cuenta_origen = self.buscar_cuenta(numero_cuenta_origen)
+        cuenta_destino = self.buscar_cuenta(numero_cuenta_destino)
+        
+        if not cuenta_origen or not cuenta_destino:
+            raise ValueError("Una o ambas cuentas no existen")
+        
+        if cuenta_origen['saldo'] < monto:
+            raise ValueError("Saldo insuficiente en cuenta origen")
+        
+        # Realizar transferencia
+        cuenta_origen['saldo'] -= monto
+        cuenta_destino['saldo'] += monto
+        
+        self._log(f"Transferencia ${monto:.2f}: #{numero_cuenta_origen} → #{numero_cuenta_destino}")
+        return True
     
-    def total_clientes(self):
-        """
-        Retorna el número total de clientes
-        
-        Returns:
-            int: Cantidad de clientes
-        """
-        # return self.clientes.tamano()
-        return len(self.clientes)
+    # ========== REPORTES Y ESTADÍSTICAS ==========
     
-    def total_activos(self):
-        """
-        Retorna el número de clientes activos
-        
-        Returns:
-            int: Cantidad de clientes activos
-        """
-        return len(self.listar_activos())
-    
-    def obtener_estadisticas(self):
-        """
-        Genera estadísticas del registro
-        
-        Returns:
-            dict: Estadísticas del registro
-        """
-        total = self.total_clientes()
-        activos = self.total_activos()
-        
-        # Calcular saldo total del banco
-        saldo_total = sum(c.obtener_saldo_total() for c in self.clientes)
-        
-        return {
-            'total_clientes': total,
-            'clientes_activos': activos,
-            'clientes_inactivos': total - activos,
-            'saldo_total_banco': saldo_total
-        }
-    
-    def generar_reporte(self):
-        """Genera un reporte detallado de todos los clientes"""
+    def generar_reporte_general(self):
+        """Genera un reporte completo del banco"""
         print("\n" + "="*70)
-        print("REPORTE DE CLIENTES")
+        print(f"BANCO {self.nombre.upper()} - REPORTE GENERAL")
         print("="*70)
+        print(f"Fecha: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}")
+        print(f"\nTotal de clientes: {len(self.registro_clientes)}")
+        print(f"Total de cuentas: {len(self.indice_cuentas)}")
         
-        stats = self.obtener_estadisticas()
-        print(f"Total de clientes: {stats['total_clientes']}")
-        print(f"Clientes activos: {stats['clientes_activos']}")
-        print(f"Saldo total en el banco: ${stats['saldo_total_banco']:.2f}")
-        print("\nDetalle de clientes:")
-        print("-" * 70)
+        saldo_total = sum(c['saldo'] for c in self.indice_cuentas.values())
+        print(f"Saldo total en el banco: ${saldo_total:.2f}")
         
-        for cliente in self.clientes:
-            print(f"\n{cliente}")
-            print(f"  Email: {cliente.email}")
-            print(f"  Cuentas: {cliente.obtener_total_cuentas()}")
-            print(f"  Saldo total: ${cliente.obtener_saldo_total():.2f}")
-            print(f"  Estado: {'ACTIVO' if cliente.activo else 'INACTIVO'}")
+        print("\nActividad reciente:")
+        for log in self.log_actividades[-5:]:
+            print(f"  {log['timestamp'].strftime('%H:%M:%S')} - {log['mensaje']}")
         
-        print("\n" + "="*70 + "\n")
+        print("="*70 + "\n")
     
     def __str__(self):
-        return f"RegistroClientes(total={self.total_clientes()}, activos={self.total_activos()})"
+        return f"Banco(nombre='{self.nombre}', clientes={len(self.registro_clientes)}, cuentas={len(self.indice_cuentas)})"
