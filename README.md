@@ -1,208 +1,141 @@
 """
-ESTRUCTURA DE DATOS: ÁRBOL BINARIO DE BÚSQUEDA (BST)
-Aplicación: Búsqueda eficiente de cuentas bancarias por número
+Clase Cliente - Modelo de datos principal
 """
 
-class NodoArbol:
-    """Nodo individual del árbol binario"""
-    
-    def __init__(self, clave, valor):
-        self.clave = clave      # Número de cuenta
-        self.valor = valor      # Objeto Cuenta
-        self.izquierda = None
-        self.derecha = None
+from datetime import datetime
 
-
-class ArbolBinarioBusqueda:
+class Cliente:
     """
-    Árbol Binario de Búsqueda para almacenar cuentas.
-    Propiedad: nodos izquierda < padre < nodos derecha
-    Búsqueda promedio: O(log n)
+    Representa un cliente del banco.
+    
+    Atributos:
+        id_cliente (int): Identificador único del cliente
+        nombre (str): Nombre del cliente
+        apellido (str): Apellido del cliente
+        dni (str): Documento de identidad
+        email (str): Correo electrónico
+        telefono (str): Número de teléfono
+        direccion (str): Dirección del cliente
+        fecha_registro (datetime): Fecha de registro en el banco
+        cuentas (list): Lista de cuentas del cliente
+        activo (bool): Estado del cliente
     """
     
-    def __init__(self):
-        """Inicializa un árbol vacío"""
-        self.raiz = None
-        self.tamano_arbol = 0
+    # Contador de clientes (variable de clase)
+    contador_clientes = 0
     
-    def insertar(self, clave, valor):
+    def __init__(self, nombre, apellido, dni, email, telefono="", direccion=""):
         """
-        Inserta una nueva clave-valor en el árbol
-        Complejidad: O(log n) promedio, O(n) peor caso
+        Inicializa un nuevo cliente
+        
+        Args:
+            nombre (str): Nombre del cliente
+            apellido (str): Apellido del cliente
+            dni (str): Documento de identidad
+            email (str): Correo electrónico
+            telefono (str): Número de teléfono (opcional)
+            direccion (str): Dirección (opcional)
         """
-        if self.raiz is None:
-            self.raiz = NodoArbol(clave, valor)
-        else:
-            self._insertar_recursivo(self.raiz, clave, valor)
-        self.tamano_arbol += 1
+        Cliente.contador_clientes += 1
+        self.id_cliente = Cliente.contador_clientes
+        self.nombre = nombre
+        self.apellido = apellido
+        self.dni = dni
+        self.email = email
+        self.telefono = telefono
+        self.direccion = direccion
+        self.fecha_registro = datetime.now()
+        self.cuentas = []  # Lista de cuentas asociadas
+        self.activo = True
+    
+    def agregar_cuenta(self, cuenta):
+        """
+        Asocia una cuenta bancaria al cliente
+        
+        Args:
+            cuenta (Cuenta): Objeto de tipo Cuenta
+        """
+        if cuenta not in self.cuentas:
+            self.cuentas.append(cuenta)
+            return True
+        return False
+    
+    def obtener_nombre_completo(self):
+        """Retorna el nombre completo del cliente"""
+        return f"{self.nombre} {self.apellido}"
+    
+    def obtener_total_cuentas(self):
+        """Retorna el número de cuentas del cliente"""
+        return len(self.cuentas)
+    
+    def obtener_saldo_total(self):
+        """
+        Calcula el saldo total sumando todas las cuentas
+        
+        Returns:
+            float: Saldo total de todas las cuentas
+        """
+        return sum(cuenta.saldo for cuenta in self.cuentas)
+    
+    def desactivar(self):
+        """Desactiva el cliente en el sistema"""
+        self.activo = False
         return True
     
-    def _insertar_recursivo(self, nodo, clave, valor):
-        """Función auxiliar recursiva para insertar"""
-        if clave < nodo.clave:
-            if nodo.izquierda is None:
-                nodo.izquierda = NodoArbol(clave, valor)
-            else:
-                self._insertar_recursivo(nodo.izquierda, clave, valor)
-        elif clave > nodo.clave:
-            if nodo.derecha is None:
-                nodo.derecha = NodoArbol(clave, valor)
-            else:
-                self._insertar_recursivo(nodo.derecha, clave, valor)
-        else:
-            # La clave ya existe, actualizar valor
-            nodo.valor = valor
-            self.tamano_arbol -= 1  # No incrementamos tamaño
+    def activar(self):
+        """Activa el cliente en el sistema"""
+        self.activo = True
+        return True
     
-    def buscar(self, clave):
-        """
-        Busca una clave en el árbol
-        Complejidad: O(log n) promedio
-        Retorna: valor asociado o None
-        """
-        return self._buscar_recursivo(self.raiz, clave)
+    def actualizar_email(self, nuevo_email):
+        """Actualiza el correo electrónico del cliente"""
+        self.email = nuevo_email
+        return True
     
-    def _buscar_recursivo(self, nodo, clave):
-        """Función auxiliar recursiva para buscar"""
-        if nodo is None:
-            return None
+    def actualizar_telefono(self, nuevo_telefono):
+        """Actualiza el teléfono del cliente"""
+        self.telefono = nuevo_telefono
+        return True
+    
+    def actualizar_direccion(self, nueva_direccion):
+        """Actualiza la dirección del cliente"""
+        self.direccion = nueva_direccion
+        return True
+    
+    def obtener_info(self):
+        """
+        Retorna un diccionario con la información del cliente
         
-        if clave == nodo.clave:
-            return nodo.valor
-        elif clave < nodo.clave:
-            return self._buscar_recursivo(nodo.izquierda, clave)
-        else:
-            return self._buscar_recursivo(nodo.derecha, clave)
-    
-    def eliminar(self, clave):
+        Returns:
+            dict: Información completa del cliente
         """
-        Elimina un nodo del árbol
-        Complejidad: O(log n) promedio
-        """
-        self.raiz, eliminado = self._eliminar_recursivo(self.raiz, clave)
-        if eliminado:
-            self.tamano_arbol -= 1
-        return eliminado
-    
-    def _eliminar_recursivo(self, nodo, clave):
-        """Función auxiliar recursiva para eliminar"""
-        if nodo is None:
-            return nodo, False
-        
-        if clave < nodo.clave:
-            nodo.izquierda, eliminado = self._eliminar_recursivo(nodo.izquierda, clave)
-            return nodo, eliminado
-        elif clave > nodo.clave:
-            nodo.derecha, eliminado = self._eliminar_recursivo(nodo.derecha, clave)
-            return nodo, eliminado
-        else:
-            # Nodo encontrado, tres casos:
-            
-            # Caso 1: Nodo hoja
-            if nodo.izquierda is None and nodo.derecha is None:
-                return None, True
-            
-            # Caso 2: Un hijo
-            if nodo.izquierda is None:
-                return nodo.derecha, True
-            if nodo.derecha is None:
-                return nodo.izquierda, True
-            
-            # Caso 3: Dos hijos
-            # Encontrar el sucesor (mínimo del subárbol derecho)
-            sucesor = self._encontrar_minimo(nodo.derecha)
-            nodo.clave = sucesor.clave
-            nodo.valor = sucesor.valor
-            nodo.derecha, _ = self._eliminar_recursivo(nodo.derecha, sucesor.clave)
-            return nodo, True
-    
-    def _encontrar_minimo(self, nodo):
-        """Encuentra el nodo con la clave mínima"""
-        while nodo.izquierda:
-            nodo = nodo.izquierda
-        return nodo
-    
-    def recorrido_en_orden(self):
-        """
-        Recorrido In-Order (izquierda-raíz-derecha)
-        Retorna elementos ordenados ascendentemente
-        Complejidad: O(n)
-        """
-        resultado = []
-        self._en_orden_recursivo(self.raiz, resultado)
-        return resultado
-    
-    def _en_orden_recursivo(self, nodo, resultado):
-        """Función auxiliar para recorrido en orden"""
-        if nodo:
-            self._en_orden_recursivo(nodo.izquierda, resultado)
-            resultado.append((nodo.clave, nodo.valor))
-            self._en_orden_recursivo(nodo.derecha, resultado)
-    
-    def recorrido_pre_orden(self):
-        """
-        Recorrido Pre-Order (raíz-izquierda-derecha)
-        Complejidad: O(n)
-        """
-        resultado = []
-        self._pre_orden_recursivo(self.raiz, resultado)
-        return resultado
-    
-    def _pre_orden_recursivo(self, nodo, resultado):
-        """Función auxiliar para recorrido pre-orden"""
-        if nodo:
-            resultado.append((nodo.clave, nodo.valor))
-            self._pre_orden_recursivo(nodo.izquierda, resultado)
-            self._pre_orden_recursivo(nodo.derecha, resultado)
-    
-    def recorrido_post_orden(self):
-        """
-        Recorrido Post-Order (izquierda-derecha-raíz)
-        Complejidad: O(n)
-        """
-        resultado = []
-        self._post_orden_recursivo(self.raiz, resultado)
-        return resultado
-    
-    def _post_orden_recursivo(self, nodo, resultado):
-        """Función auxiliar para recorrido post-orden"""
-        if nodo:
-            self._post_orden_recursivo(nodo.izquierda, resultado)
-            self._post_orden_recursivo(nodo.derecha, resultado)
-            resultado.append((nodo.clave, nodo.valor))
-    
-    def altura(self):
-        """
-        Calcula la altura del árbol
-        Complejidad: O(n)
-        """
-        return self._calcular_altura(self.raiz)
-    
-    def _calcular_altura(self, nodo):
-        """Función auxiliar recursiva para calcular altura"""
-        if nodo is None:
-            return 0
-        return 1 + max(self._calcular_altura(nodo.izquierda), 
-                       self._calcular_altura(nodo.derecha))
-    
-    def esta_vacio(self):
-        """Verifica si el árbol está vacío"""
-        return self.raiz is None
-    
-    def tamano(self):
-        """Retorna el número de nodos en el árbol"""
-        return self.tamano_arbol
-    
-    def limpiar(self):
-        """Vacía completamente el árbol"""
-        self.raiz = None
-        self.tamano_arbol = 0
-    
-    def __len__(self):
-        """Permite usar len() con el árbol"""
-        return self.tamano_arbol
+        return {
+            'id': self.id_cliente,
+            'nombre_completo': self.obtener_nombre_completo(),
+            'dni': self.dni,
+            'email': self.email,
+            'telefono': self.telefono,
+            'direccion': self.direccion,
+            'fecha_registro': self.fecha_registro.strftime("%Y-%m-%d"),
+            'total_cuentas': self.obtener_total_cuentas(),
+            'saldo_total': self.obtener_saldo_total(),
+            'activo': self.activo
+        }
     
     def __str__(self):
-        """Representación en string del árbol"""
-        elementos = self.recorrido_en_orden()
-        return f"ArbolBST(tamano={self.tamano_arbol}, elementos={elementos})"
+        """Representación en string del cliente"""
+        return f"Cliente #{self.id_cliente}: {self.obtener_nombre_completo()} (DNI: {self.dni})"
+    
+    def __repr__(self):
+        """Representación técnica del cliente"""
+        return f"Cliente(id={self.id_cliente}, nombre='{self.nombre}', apellido='{self.apellido}', dni='{self.dni}')"
+    
+    def __eq__(self, otro):
+        """Comparación de igualdad entre clientes (por DNI)"""
+        if isinstance(otro, Cliente):
+            return self.dni == otro.dni
+        return False
+    
+    def __hash__(self):
+        """Hash del cliente basado en DNI"""
+        return hash(self.dni)
