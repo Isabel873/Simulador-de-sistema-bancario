@@ -1,182 +1,215 @@
 """
-APLICACIÓN DE PILA (LIFO)
-Sistema de deshacer/rehacer operaciones bancarias
-Las operaciones se deshacen en orden inverso (última primero)
+APLICACIÓN DE LISTA ENLAZADA
+Sistema de registro y gestión de clientes
 """
 
-from datetime import datetime
+# from estructuras.lista import ListaEnlazada
 
-# from estructuras.pila import Pila
-
-class Operacion:
+class RegistroClientes:
     """
-    Representa una operación reversible en el sistema
-    """
+    Gestiona el registro de clientes usando Lista Enlazada
     
-    def __init__(self, tipo, cuenta, monto_anterior, monto_nuevo, descripcion=""):
-        """
-        Inicializa una operación
-        
-        Args:
-            tipo (str): Tipo de operación
-            cuenta (Cuenta): Cuenta afectada
-            monto_anterior (float): Saldo antes de la operación
-            monto_nuevo (float): Saldo después de la operación
-            descripcion (str): Descripción de la operación
-        """
-        self.tipo = tipo
-        self.cuenta = cuenta
-        self.monto_anterior = monto_anterior
-        self.monto_nuevo = monto_nuevo
-        self.descripcion = descripcion
-        self.fecha = datetime.now()
-    
-    def revertir(self):
-        """Revierte la operación"""
-        self.cuenta.saldo = self.monto_anterior
-        return True
-    
-    def reaplicar(self):
-        """Reaplica la operación"""
-        self.cuenta.saldo = self.monto_nuevo
-        return True
-    
-    def __str__(self):
-        return f"{self.tipo}: ${self.monto_anterior:.2f} → ${self.monto_nuevo:.2f}"
-
-
-class HistorialOperaciones:
-    """
-    Gestiona el historial de operaciones con funcionalidad de deshacer/rehacer
-    
-    APLICACIÓN DE PILA LIFO:
-    - pila_deshacer: Guarda operaciones realizadas
-    - pila_rehacer: Guarda operaciones deshechas
-    - Deshacer: Saca de pila_deshacer (última operación)
-    - Rehacer: Saca de pila_rehacer (última operación deshecha)
+    APLICACIÓN DE LISTA:
+    - Almacena clientes en orden de registro
+    - Permite búsqueda por diferentes criterios
+    - Mantiene orden de inserción
     """
     
     def __init__(self):
-        """Inicializa el historial con dos pilas"""
-        # self.pila_deshacer = Pila()  # Pila LIFO para operaciones
-        # self.pila_rehacer = Pila()   # Pila LIFO para rehacer
-        self.pila_deshacer = []  # Simulación de pila
-        self.pila_rehacer = []   # Simulación de pila
+        """Inicializa el registro con una lista vacía"""
+        # self.clientes = ListaEnlazada()
+        self.clientes = []  # Simulación de lista enlazada
     
-    def registrar_operacion(self, operacion):
+    def registrar_cliente(self, cliente):
         """
-        Registra una nueva operación en la pila de deshacer
+        Registra un nuevo cliente en el sistema
         
         Args:
-            operacion (Operacion): Operación a registrar
-        """
-        # self.pila_deshacer.apilar(operacion)
-        self.pila_deshacer.append(operacion)
-        
-        # Al hacer una nueva operación, limpiar pila de rehacer
-        # self.pila_rehacer.limpiar()
-        self.pila_rehacer = []
-        
-        print(f"✓ Operación registrada: {operacion}")
-    
-    def deshacer(self):
-        """
-        Deshace la última operación realizada (LIFO)
-        
-        Returns:
-            Operacion: Operación deshecha o None
-        """
-        # if self.pila_deshacer.esta_vacia():
-        if not self.pila_deshacer:
-            print("⚠ No hay operaciones para deshacer")
-            return None
-        
-        # Desapilar la última operación (LIFO)
-        # operacion = self.pila_deshacer.desapilar()
-        operacion = self.pila_deshacer.pop()
-        
-        # Revertir la operación
-        operacion.revertir()
-        
-        # Mover a pila de rehacer
-        # self.pila_rehacer.apilar(operacion)
-        self.pila_rehacer.append(operacion)
-        
-        print(f"↶ Operación deshecha: {operacion}")
-        print(f"  Nuevo saldo: ${operacion.cuenta.saldo:.2f}")
-        
-        return operacion
-    
-    def rehacer(self):
-        """
-        Rehace la última operación deshecha (LIFO)
-        
-        Returns:
-            Operacion: Operación rehecha o None
-        """
-        # if self.pila_rehacer.esta_vacia():
-        if not self.pila_rehacer:
-            print("⚠ No hay operaciones para rehacer")
-            return None
-        
-        # Desapilar de pila rehacer (LIFO)
-        # operacion = self.pila_rehacer.desapilar()
-        operacion = self.pila_rehacer.pop()
-        
-        # Reaplicar la operación
-        operacion.reaplicar()
-        
-        # Mover de vuelta a pila de deshacer
-        # self.pila_deshacer.apilar(operacion)
-        self.pila_deshacer.append(operacion)
-        
-        print(f"↷ Operación rehecha: {operacion}")
-        print(f"  Nuevo saldo: ${operacion.cuenta.saldo:.2f}")
-        
-        return operacion
-    
-    def puede_deshacer(self):
-        """Verifica si hay operaciones para deshacer"""
-        # return not self.pila_deshacer.esta_vacia()
-        return len(self.pila_deshacer) > 0
-    
-    def puede_rehacer(self):
-        """Verifica si hay operaciones para rehacer"""
-        # return not self.pila_rehacer.esta_vacia()
-        return len(self.pila_rehacer) > 0
-    
-    def obtener_historial(self, ultimas_n=10):
-        """
-        Obtiene las últimas N operaciones
-        
-        Args:
-            ultimas_n (int): Número de operaciones a mostrar
+            cliente (Cliente): Cliente a registrar
             
         Returns:
-            list: Lista de operaciones
+            bool: True si fue exitoso
         """
-        # operaciones = self.pila_deshacer.items[-ultimas_n:]
-        operaciones = self.pila_deshacer[-ultimas_n:]
-        return operaciones
-    
-    def limpiar(self):
-        """Limpia ambas pilas"""
-        # self.pila_deshacer.limpiar()
-        # self.pila_rehacer.limpiar()
-        self.pila_deshacer = []
-        self.pila_rehacer = []
-        print("✓ Historial limpiado")
+        # Verificar que no exista un cliente con el mismo DNI
+        if self.buscar_por_dni(cliente.dni):
+            raise ValueError(f"Ya existe un cliente con DNI {cliente.dni}")
+        
+        # self.clientes.agregar(cliente)
+        self.clientes.append(cliente)
+        
+        print(f"✓ Cliente registrado: {cliente}")
         return True
     
+    def buscar_por_dni(self, dni):
+        """
+        Busca un cliente por DNI
+        
+        Args:
+            dni (str): DNI del cliente
+            
+        Returns:
+            Cliente: Cliente encontrado o None
+        """
+        # return self.clientes.buscar(lambda c: c.dni == dni)
+        for cliente in self.clientes:
+            if cliente.dni == dni:
+                return cliente
+        return None
+    
+    def buscar_por_id(self, id_cliente):
+        """
+        Busca un cliente por ID
+        
+        Args:
+            id_cliente (int): ID del cliente
+            
+        Returns:
+            Cliente: Cliente encontrado o None
+        """
+        # return self.clientes.buscar(lambda c: c.id_cliente == id_cliente)
+        for cliente in self.clientes:
+            if cliente.id_cliente == id_cliente:
+                return cliente
+        return None
+    
+    def buscar_por_nombre(self, nombre):
+        """
+        Busca clientes por nombre (coincidencia parcial)
+        
+        Args:
+            nombre (str): Nombre a buscar
+            
+        Returns:
+            list: Lista de clientes encontrados
+        """
+        nombre_lower = nombre.lower()
+        # clientes_lista = self.clientes.listar_todos()
+        
+        return [
+            c for c in self.clientes
+            if nombre_lower in c.nombre.lower() or nombre_lower in c.apellido.lower()
+        ]
+    
+    def buscar_por_email(self, email):
+        """
+        Busca un cliente por email
+        
+        Args:
+            email (str): Email del cliente
+            
+        Returns:
+            Cliente: Cliente encontrado o None
+        """
+        # return self.clientes.buscar(lambda c: c.email == email)
+        for cliente in self.clientes:
+            if cliente.email == email:
+                return cliente
+        return None
+    
+    def eliminar_cliente(self, dni):
+        """
+        Elimina un cliente del registro
+        
+        Args:
+            dni (str): DNI del cliente a eliminar
+            
+        Returns:
+            bool: True si fue exitoso
+        """
+        cliente = self.buscar_por_dni(dni)
+        
+        if not cliente:
+            raise ValueError(f"No se encontró cliente con DNI {dni}")
+        
+        # Verificar que no tenga cuentas activas
+        if cliente.obtener_total_cuentas() > 0:
+            raise Exception("No se puede eliminar un cliente con cuentas activas")
+        
+        # return self.clientes.eliminar(lambda c: c.dni == dni)
+        self.clientes.remove(cliente)
+        print(f"✓ Cliente eliminado: {cliente}")
+        return True
+    
+    def listar_todos(self):
+        """
+        Lista todos los clientes registrados
+        
+        Returns:
+            list: Lista de todos los clientes
+        """
+        # return self.clientes.listar_todos()
+        return self.clientes.copy()
+    
+    def listar_activos(self):
+        """
+        Lista solo clientes activos
+        
+        Returns:
+            list: Lista de clientes activos
+        """
+        # clientes_lista = self.clientes.listar_todos()
+        return [c for c in self.clientes if c.activo]
+    
+    def total_clientes(self):
+        """
+        Retorna el número total de clientes
+        
+        Returns:
+            int: Cantidad de clientes
+        """
+        # return self.clientes.tamano()
+        return len(self.clientes)
+    
+    def total_activos(self):
+        """
+        Retorna el número de clientes activos
+        
+        Returns:
+            int: Cantidad de clientes activos
+        """
+        return len(self.listar_activos())
+    
     def obtener_estadisticas(self):
-        """Retorna estadísticas del historial"""
+        """
+        Genera estadísticas del registro
+        
+        Returns:
+            dict: Estadísticas del registro
+        """
+        total = self.total_clientes()
+        activos = self.total_activos()
+        
+        # Calcular saldo total del banco
+        saldo_total = sum(c.obtener_saldo_total() for c in self.clientes)
+        
         return {
-            'operaciones_realizadas': len(self.pila_deshacer),
-            'operaciones_deshechas': len(self.pila_rehacer),
-            'puede_deshacer': self.puede_deshacer(),
-            'puede_rehacer': self.puede_rehacer()
+            'total_clientes': total,
+            'clientes_activos': activos,
+            'clientes_inactivos': total - activos,
+            'saldo_total_banco': saldo_total
         }
     
-    def __str__(self):
+    def generar_reporte(self):
+        """Genera un reporte detallado de todos los clientes"""
+        print("\n" + "="*70)
+        print("REPORTE DE CLIENTES")
+        print("="*70)
+        
         stats = self.obtener_estadisticas()
-        return f"HistorialOperaciones(realizadas={stats['operaciones_realizadas']}, deshechas={stats['operaciones_deshechas']})"
+        print(f"Total de clientes: {stats['total_clientes']}")
+        print(f"Clientes activos: {stats['clientes_activos']}")
+        print(f"Saldo total en el banco: ${stats['saldo_total_banco']:.2f}")
+        print("\nDetalle de clientes:")
+        print("-" * 70)
+        
+        for cliente in self.clientes:
+            print(f"\n{cliente}")
+            print(f"  Email: {cliente.email}")
+            print(f"  Cuentas: {cliente.obtener_total_cuentas()}")
+            print(f"  Saldo total: ${cliente.obtener_saldo_total():.2f}")
+            print(f"  Estado: {'ACTIVO' if cliente.activo else 'INACTIVO'}")
+        
+        print("\n" + "="*70 + "\n")
+    
+    def __str__(self):
+        return f"RegistroClientes(total={self.total_clientes()}, activos={self.total_activos()})"
